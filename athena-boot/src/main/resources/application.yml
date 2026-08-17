@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: athena-boot
+  # 环境 dev|test|prod
+  profiles:
+    active: dev
+sa-token:
+  token-name: X-Access-Token
+  timeout: 1800
+  is-share: false
+  is-read-cookie: false
+  token-style: random-128

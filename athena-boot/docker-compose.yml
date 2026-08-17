@@ -1,0 +1,10 @@
+version: "3.0"
+services:
+  web:
+    container_name: athena-boot
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - "/logs/log_prod_athena:/logs"
+    restart: on-failure

@@ -1,0 +1,18 @@
+# Compiled class file
+*.class
+target
+.vscode
+maven-updates.txt
+
+# Log file
+*.log
+
+# Package Files #
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+*.iml
+.idea

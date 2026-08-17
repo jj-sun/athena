@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "athena-vue-tdesign"
+		},
+		{
+			"path": "athena-boot"
+		}
+	],
+	"settings": {
+		"java.configuration.updateBuildConfiguration": "interactive"
+	}
+}
