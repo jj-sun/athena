@@ -1,5 +1,5 @@
+import type { SysScheduleJob } from '@/types/monitor';
 import { DELETE, GET, POST, PUT } from '@/utils/http';
-import type { SysScheduleJob, TaskBeanOption, PageResult, Result } from '@/types/monitor';
 
 const scheduleApi = {
   list: '/sys/schedule/list',
@@ -14,48 +14,43 @@ const scheduleApi = {
   taskBeanList: '/sys/schedule/taskBeanList',
 };
 
-export async function getScheduleJobList(params: {
-  page: number;
-  pageSize: number;
-  beanName?: string;
-  status?: number;
-}): Promise<Result<PageResult<SysScheduleJob>>> {
+export function getScheduleJobList(params: { page: number; pageSize: number; beanName?: string; status?: number }) {
   return GET(scheduleApi.list, params);
 }
 
-export async function getScheduleJobInfo(id: string): Promise<Result<SysScheduleJob>> {
+export function getScheduleJobInfo(id: string) {
   return GET(`${scheduleApi.info}/${id}`);
 }
 
-export async function getScheduleTaskBeanList(excludeId?: string): Promise<Result<TaskBeanOption[]>> {
+export function getScheduleTaskBeanList(excludeId?: string) {
   const params = excludeId ? { excludeId } : {};
   return GET(scheduleApi.taskBeanList, params);
 }
 
-export async function saveScheduleJob(data: SysScheduleJob): Promise<Result<void>> {
+export function saveScheduleJob(data: SysScheduleJob) {
   return POST(scheduleApi.save, data);
 }
 
-export async function updateScheduleJob(data: SysScheduleJob): Promise<Result<void>> {
+export function updateScheduleJob(data: SysScheduleJob) {
   return PUT(scheduleApi.update, data);
 }
 
-export async function deleteScheduleJob(id: string): Promise<Result<void>> {
+export function deleteScheduleJob(id: string) {
   return DELETE(`${scheduleApi.delete}?id=${id}`);
 }
 
-export async function deleteScheduleJobBatch(ids: Array<string>): Promise<Result<void>> {
+export function deleteScheduleJobBatch(ids: Array<string>) {
   return DELETE(`${scheduleApi.deleteBatch}?ids=${ids.join(',')}`);
 }
 
-export async function runScheduleJob(id: string): Promise<Result<void>> {
+export function runScheduleJob(id: string) {
   return GET(`${scheduleApi.run}?id=${id}`);
 }
 
-export async function pauseScheduleJob(id: string): Promise<Result<void>> {
+export function pauseScheduleJob(id: string) {
   return GET(`${scheduleApi.pause}?id=${id}`);
 }
 
-export async function resumeScheduleJob(id: string): Promise<Result<void>> {
+export function resumeScheduleJob(id: string) {
   return GET(`${scheduleApi.resume}?id=${id}`);
 }

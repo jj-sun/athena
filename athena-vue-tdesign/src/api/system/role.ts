@@ -1,4 +1,4 @@
-import type { BaseSelect, PageResult, Result, SysRole, SysUser } from '@/types/system';
+import type { SysRole } from '@/types/system';
 import { DELETE, GET, POST, PUT } from '@/utils/http';
 
 const roleApi = {
@@ -17,54 +17,45 @@ const roleApi = {
   removeUser: '/sys/role/removeUser',
 };
 
-export async function getRoleList(params: {
-  page: number;
-  pageSize: number;
-  roleName?: string;
-  roleCode?: string;
-}): Promise<Result<PageResult<SysRole>>> {
+export function getRoleList(params: { page: number; pageSize: number; roleName?: string; roleCode?: string }) {
   return GET(roleApi.list, params);
 }
 
-export async function getRoleSelect(): Promise<Result<Array<BaseSelect>>> {
+export function getRoleSelect() {
   return GET(roleApi.select);
 }
 
-export async function getRoleInfo(id: string): Promise<Result<SysRole>> {
+export function getRoleInfo(id: string) {
   return GET(`${roleApi.info}/${id}`);
 }
 
-export async function saveRole(data: SysRole): Promise<Result<void>> {
+export function saveRole(data: SysRole) {
   return POST(roleApi.save, data);
 }
 
-export async function updateRole(data: SysRole): Promise<Result<void>> {
+export function updateRole(data: SysRole) {
   return PUT(roleApi.update, data);
 }
 
-export async function deleteRole(id: string): Promise<Result<void>> {
+export function deleteRole(id: string) {
   return DELETE(`${roleApi.delete}?id=${id}`);
 }
 
-export async function deleteRoleBatch(ids: Array<string>): Promise<Result<void>> {
+export function deleteRoleBatch(ids: Array<string>) {
   return DELETE(`${roleApi.deleteBatch}?ids=${ids.join(',')}`);
 }
-export async function getPermissionIdList(roleId: string): Promise<Array<string>> {
+export function getPermissionIdList(roleId: string) {
   return GET(`${roleApi.getPermissionIdList}?roleId=${roleId}`);
 }
 
-export async function getRoleUserList(params: {
-  roleId: string;
-  page: number;
-  pageSize: number;
-}): Promise<Result<PageResult<SysUser>>> {
+export function getRoleUserList(params: { roleId: string; page: number; pageSize: number }) {
   return GET(roleApi.listUsers, params);
 }
 
-export async function addUserToRole(data: { roleId: string; userIdList: string[] }): Promise<Result<void>> {
+export function addUserToRole(data: { roleId: string; userIdList: string[] }) {
   return POST(roleApi.addUser, data);
 }
 
-export async function removeUserFromRole(roleId: string, userId: string): Promise<Result<void>> {
+export function removeUserFromRole(roleId: string, userId: string) {
   return DELETE(`${roleApi.removeUser}?roleId=${roleId}&userId=${userId}`);
 }

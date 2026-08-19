@@ -1,4 +1,4 @@
-import type { PageResult, Result, SysUser } from '@/types/system';
+import type { SysUser } from '@/types/system';
 import { DELETE, GET, POST, PUT } from '@/utils/http';
 
 const userApi = {
@@ -11,37 +11,37 @@ const userApi = {
   resetPassword: '/sys/user/resetPassword',
 };
 
-export async function getUserList(params: {
+export function getUserList(params: {
   page: number;
   pageSize: number;
   username?: string;
   realname?: string;
   email?: string;
   deptCode?: string;
-}): Promise<Result<PageResult<SysUser>>> {
+}) {
   return GET(userApi.list, params);
 }
 
-export async function getUserInfo(id: string): Promise<Result<SysUser>> {
+export function getUserInfo(id: string) {
   return GET(`${userApi.info}/${id}`);
 }
 
-export async function saveUser(data: SysUser): Promise<Result<void>> {
+export function saveUser(data: SysUser) {
   return POST(userApi.save, data);
 }
 
-export async function updateUser(data: SysUser): Promise<Result<void>> {
+export function updateUser(data: SysUser) {
   return PUT(userApi.update, data);
 }
 
-export async function deleteUser(id: string): Promise<Result<void>> {
+export function deleteUser(id: string) {
   return DELETE(`${userApi.delete}?id=${id}`);
 }
 
-export async function deleteUserBatch(ids: Array<string>): Promise<Result<void>> {
+export function deleteUserBatch(ids: Array<string>) {
   return DELETE(`${userApi.deleteBatch}?ids=${ids.join(',')}`);
 }
 
-export async function resetUserPassword(id: string, password: string): Promise<Result<void>> {
+export function resetUserPassword(id: string, password: string) {
   return POST(userApi.resetPassword, { id, password });
 }

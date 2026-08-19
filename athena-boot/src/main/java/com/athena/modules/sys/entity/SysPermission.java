@@ -49,6 +49,21 @@ public class SysPermission extends BasePo implements Serializable {
 	private String component;
 
 	/**
+	 * 外部链接
+	 */
+	private String frameSrc;
+
+	/**
+	 * 0:外链，1内链
+	 */
+	private Integer frameBlank;
+
+	/**
+	 * 一级菜单跳转地址
+	 */
+	private String redirect;
+
+	/**
 	 * 授权(多个用逗号分隔，如：user:list,user:create)
 	 */
 	private String perms;
@@ -62,6 +77,11 @@ public class SysPermission extends BasePo implements Serializable {
 	 * 菜单图标
 	 */
 	private String icon;
+
+	/**
+	 * 是否隐藏
+	 */
+	private Integer hidden;
 
 	/**
 	 * 排序

@@ -1,7 +1,6 @@
-import type { LoginInfo, Result } from '@/types/base/auth.ts';
 import { POST } from '@/utils/http';
 
-export async function login(username: string, password: string): Promise<Result<LoginInfo>> {
+export function login(username: string, password: string) {
   const data = {
     username,
     password,
@@ -9,6 +8,6 @@ export async function login(username: string, password: string): Promise<Result<
   return POST('/login', data);
 }
 
-export async function logout(): Promise<Result<void>> {
+export function logout() {
   return POST('/logout');
 }

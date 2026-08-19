@@ -1,4 +1,5 @@
 import Layout from '@/layouts/index.vue';
+import IFrame from '@/layouts/frame/index.vue';
 
 export default [
   /*  {
@@ -50,6 +51,7 @@ export default [
         en_US: 'Form',
       },
       icon: 'edit-1',
+      orderNo: 100,
     },
     children: [
       {
@@ -87,12 +89,13 @@ export default [
         zh_CN: '外部页面',
         en_US: 'External',
       },
+      orderNo: 101,
     },
     children: [
       {
         path: 'doc',
         name: 'Doc',
-        component: 'IFrame',
+        component: IFrame,
         meta: {
           frameSrc: 'https://tdesign.tencent.com/starter/docs/vue-next/get-started',
           title: {
@@ -104,7 +107,7 @@ export default [
       {
         path: 'TDesign',
         name: 'TDesign',
-        component: 'IFrame',
+        component: IFrame,
         meta: {
           frameSrc: 'https://tdesign.tencent.com/vue-next/getting-started',
           title: {
@@ -116,7 +119,7 @@ export default [
       {
         path: 'TDesign2',
         name: 'TDesign2',
-        component: 'IFrame',
+        component: IFrame,
         meta: {
           frameSrc: 'https://tdesign.tencent.com/vue-next/getting-started',
           frameBlank: true,
@@ -139,6 +142,7 @@ export default [
         en_US: 'Result',
       },
       icon: 'check-circle',
+      orderNo: 102,
     },
     children: [
       {
@@ -211,7 +215,7 @@ export default [
     name: 'user',
     component: Layout,
     redirect: '/user/index',
-    meta: { title: { zh_CN: '个人中心', en_US: 'User Center' }, icon: 'user-circle' },
+    meta: { title: { zh_CN: '个人中心', en_US: 'User Center' }, icon: 'user-circle', orderNo: 103 },
     children: [
       {
         path: 'index',

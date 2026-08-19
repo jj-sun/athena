@@ -108,6 +108,7 @@ spring:
       test-on-return: false
       stat-view-servlet:
         enabled: true
+        allow:
         url-pattern: /druid/*
         #login-username: admin
         #login-password: admin

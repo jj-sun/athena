@@ -22,7 +22,7 @@
         :selected-row-size="selectedRowKeys.length"
         :table-columns="tableColumns"
         @do-refresh="loadData"
-        @clear-selected="onSelectChange([])"
+        @clear-selected="onClearSelected"
       >
         <template #action>
           <t-button theme="primary" @click="onAdd">
@@ -53,7 +53,6 @@
         :pagination="pagination"
         table-layout="fixed"
         :row-key="rowKey"
-        :scroll="{ x: 'max-content' }"
         @select-change="onSelectChange"
       >
         <template #status="{ row }">
@@ -74,7 +73,7 @@
 
     <modal-dialog ref="modalDialogRef" :title="actionTitle" @confirm="onSubmit">
       <template #content>
-        <t-form :model="formData" :label-col="{ span: 6 }">
+        <t-form :data="formData" :label-col="{ span: 6 }">
           <t-form-item label="任务名称" name="beanName">
             <t-select
               v-model:value="formData.beanName"
@@ -142,7 +141,7 @@ import type { SysScheduleJob, TaskBeanOption } from '@/types/monitor';
 const { tableLoading, dataList, indexColumn, handleSuccess } = useTable();
 const rowKey = useRowKey('id');
 const pagination = usePagination(loadData);
-const { selectedRowKeys, onSelectChange } = useRowSelection();
+const { selectedRowKeys, onSelectChange, onClearSelected } = useRowSelection();
 
 const searchForm = reactive({
   beanName: '',
@@ -214,39 +213,45 @@ function resetSearch() {
   loadData();
 }
 
-async function loadTaskBeanOptions(excludeId?: string) {
+function loadTaskBeanOptions(excludeId?: string) {
   taskBeanLoading.value = true;
-  try {
-    const res = await getScheduleTaskBeanList(excludeId);
-    taskBeanOptions.value = res.data ?? [];
-  } catch (error) {
-    console.error('加载任务Bean列表失败', error);
-    taskBeanOptions.value = [];
-  } finally {
-    taskBeanLoading.value = false;
-  }
+  getScheduleTaskBeanList(excludeId)
+    .then((res) => {
+      taskBeanOptions.value = res.data ?? [];
+    })
+    .catch((err) => {
+      console.error('加载任务Bean列表失败', err);
+      MessagePlugin.error('加载任务Bean列表失败');
+      taskBeanOptions.value = [];
+    })
+    .finally(() => {
+      taskBeanLoading.value = false;
+    });
 }
 
-async function loadData() {
+function loadData() {
   tableLoading.value = true;
-  try {
-    const params = {
-      page: pagination.current,
-      pageSize: pagination.pageSize,
-      ...searchForm,
-      status: searchForm.status ?? undefined,
-    };
-    const res = await getScheduleJobList(params);
-    handleSuccess(res.list);
-    pagination.setTotalSize(res.total);
-  } catch (error) {
-    console.error('加载定时任务列表失败', error);
-  } finally {
-    tableLoading.value = false;
-  }
+  const params = {
+    page: pagination.current,
+    pageSize: pagination.pageSize,
+    ...searchForm,
+    status: searchForm.status ?? undefined,
+  };
+  getScheduleJobList(params)
+    .then((res) => {
+      handleSuccess(res.list);
+      pagination.setTotalSize(res.total);
+    })
+    .catch((err) => {
+      console.error('加载定时任务列表失败', err);
+      MessagePlugin.error('加载定时任务列表失败');
+    })
+    .finally(() => {
+      tableLoading.value = false;
+    });
 }
 
-async function onAdd() {
+function onAdd() {
   isAdd.value = true;
   actionTitle.value = '新增定时任务';
   Object.assign(formData, {
@@ -257,76 +262,82 @@ async function onAdd() {
     status: 1,
     remark: '',
   });
-  await loadTaskBeanOptions();
+  loadTaskBeanOptions();
   modalDialogRef.value?.toggle();
 }
 
-async function onEdit(row: SysScheduleJob) {
+function onEdit(row: SysScheduleJob) {
   isAdd.value = false;
   actionTitle.value = '编辑定时任务';
-  try {
-    const job = await getScheduleJobInfo(row.id);
-    Object.assign(formData, {
-      id: job.id,
-      beanName: job.beanName,
-      parameter: job.parameter || '',
-      cronExpression: job.cronExpression,
-      status: job.status ?? 1,
-      remark: job.remark || '',
+  getScheduleJobInfo(row.id)
+    .then((job) => {
+      Object.assign(formData, {
+        id: job.id,
+        beanName: job.beanName,
+        parameter: job.parameter || '',
+        cronExpression: job.cronExpression,
+        status: job.status ?? 1,
+        remark: job.remark || '',
+      });
+      loadTaskBeanOptions(row.id);
+      modalDialogRef.value?.toggle();
+    })
+    .catch((err) => {
+      console.log('获取定时任务信息失败', err);
+      MessagePlugin.error('获取定时任务信息失败');
     });
-    await loadTaskBeanOptions(row.id);
-    modalDialogRef.value?.toggle();
-  } catch (error) {
-    MessagePlugin.error('获取定时任务信息失败');
-  }
 }
 
 async function onSubmit() {
   if (!formData.beanName) {
-    MessagePlugin.error('请选择任务Bean');
+    void MessagePlugin.error('请选择任务Bean');
     return;
   }
   if (!formData.cronExpression) {
-    MessagePlugin.error('请输入Cron表达式');
+    void MessagePlugin.error('请输入Cron表达式');
     return;
   }
 
   try {
     if (isAdd.value) {
       await saveScheduleJob(formData);
-      MessagePlugin.success('新增定时任务成功');
+      void MessagePlugin.success('新增定时任务成功');
     } else {
       await updateScheduleJob(formData);
-      MessagePlugin.success('更新定时任务成功');
+      void MessagePlugin.success('更新定时任务成功');
     }
     modalDialogRef.value?.close();
     loadData();
-  } catch (error: any) {
-    MessagePlugin.error(error?.response?.data?.msg || '操作失败');
+  } catch (err) {
+    console.log('定时任务操作失败', err);
+    void MessagePlugin.error('定时任务操作失败');
   }
 }
 
-async function onDelete(row: SysScheduleJob) {
+function onDelete(row: SysScheduleJob) {
   const confirmDia = DialogPlugin.confirm({
     header: '提示',
     body: '确定要删除此定时任务吗？',
     cancelBtn: '取消',
     confirmBtn: '删除',
-    onConfirm: async () => {
-      try {
-        await deleteScheduleJob(row.id);
-        MessagePlugin.success('删除成功');
-        loadData();
-      } catch (error) {
-        MessagePlugin.error('删除失败');
-      } finally {
-        confirmDia.destroy();
-      }
+    onConfirm: () => {
+      deleteScheduleJob(row.id)
+        .then(() => {
+          MessagePlugin.success('定时任务删除成功');
+          loadData();
+        })
+        .catch((err) => {
+          console.log('定时任务删除失败', err);
+          MessagePlugin.error('定时任务删除失败');
+        })
+        .finally(() => {
+          confirmDia.destroy();
+        });
     },
   });
 }
 
-async function onBatchDelete() {
+function onBatchDelete() {
   if (selectedRowKeys.value.length === 0) {
     MessagePlugin.warning('请选择要删除的定时任务');
     return;
@@ -336,49 +347,57 @@ async function onBatchDelete() {
     body: `确定要删除选中的 ${selectedRowKeys.value.length} 个定时任务吗？`,
     cancelBtn: '取消',
     confirmBtn: '删除',
-    onConfirm: async () => {
-      try {
-        await deleteScheduleJobBatch(selectedRowKeys.value);
-        MessagePlugin.success('批量删除成功');
-        loadData();
-        onSelectChange([]);
-      } catch (error) {
-        MessagePlugin.error('批量删除失败');
-      } finally {
-        confirmDia.destroy();
-      }
+    onConfirm: () => {
+      deleteScheduleJobBatch(selectedRowKeys.value as string[])
+        .then(() => {
+          MessagePlugin.success('定时任务批量删除成功');
+          loadData();
+          onClearSelected();
+        })
+        .catch((err) => {
+          console.log('定时任务批量删除失败', err);
+          MessagePlugin.error('定时任务批量删除失败');
+        })
+        .finally(() => {
+          confirmDia.destroy();
+        });
     },
   });
 }
-
-async function onRun(row: SysScheduleJob) {
-  try {
-    await runScheduleJob(row.id);
-    MessagePlugin.success('执行成功');
-    loadData();
-  } catch (error) {
-    MessagePlugin.error('执行失败');
-  }
+function onRun(row: SysScheduleJob) {
+  runScheduleJob(row.id)
+    .then(() => {
+      MessagePlugin.success('执行成功');
+      loadData();
+    })
+    .catch((err) => {
+      console.log(err);
+      MessagePlugin.error('执行失败');
+    });
 }
 
-async function onPause(row: SysScheduleJob) {
-  try {
-    await pauseScheduleJob(row.id);
-    MessagePlugin.success('已暂停');
-    loadData();
-  } catch (error) {
-    MessagePlugin.error('暂停失败');
-  }
+function onPause(row: SysScheduleJob) {
+  pauseScheduleJob(row.id)
+    .then(() => {
+      MessagePlugin.success('已暂停');
+      loadData();
+    })
+    .catch((err) => {
+      console.log('暂停失败', err);
+      MessagePlugin.error('暂停失败');
+    });
 }
 
-async function onResume(row: SysScheduleJob) {
-  try {
-    await resumeScheduleJob(row.id);
-    MessagePlugin.success('已恢复');
-    loadData();
-  } catch (error) {
-    MessagePlugin.error('恢复失败');
-  }
+function onResume(row: SysScheduleJob) {
+  resumeScheduleJob(row.id)
+    .then(() => {
+      MessagePlugin.success('已恢复');
+      loadData();
+    })
+    .catch((err) => {
+      console.log('恢复失败', err);
+      MessagePlugin.error('恢复失败');
+    });
 }
 
 onMounted(loadData);

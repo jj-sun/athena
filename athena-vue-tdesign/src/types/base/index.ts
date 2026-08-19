@@ -5,8 +5,10 @@ export interface LoginInfo {
 
 export interface Result<T> {
   code: number;
-  msg: string;
-  result: T;
+  message: string;
+  data: T;
+  success: boolean;
+  timestamp: number;
 }
 
 export interface PageResult<T> {

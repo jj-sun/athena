@@ -1,5 +1,5 @@
-import { GET, POST, PUT, DELETE } from '@/utils/http';
-import type { SysDict, SysDictItem, PageResult, Result } from '@/types/system';
+import type { SysDict, SysDictItem } from '@/types/system';
+import { DELETE, GET, POST, PUT } from '@/utils/http';
 
 const dictApi = {
   list: '/sys/dict/list',
@@ -17,39 +17,34 @@ const dictItemApi = {
   delete: '/sys/dictItem/delete',
 };
 
-export async function getDictList(params: {
-  page: number;
-  pageSize: number;
-  dictName?: string;
-  dictCode?: string;
-}): Promise<Result<PageResult<SysDict>>> {
+export function getDictList(params: { page: number; pageSize: number; dictName?: string; dictCode?: string }) {
   return GET(dictApi.list, params);
 }
 
-export async function getDictInfo(id: string): Promise<Result<SysDict>> {
+export function getDictInfo(id: string) {
   return GET(`${dictApi.info}/${id}`);
 }
 
-export async function saveDict(data: SysDict): Promise<Result<void>> {
+export function saveDict(data: SysDict) {
   return POST(dictApi.save, data);
 }
 
-export async function updateDict(data: SysDict): Promise<Result<void>> {
+export function updateDict(data: SysDict) {
   return PUT(dictApi.update, data);
 }
 
-export async function deleteDict(id: string): Promise<Result<void>> {
+export function deleteDict(id: string) {
   return DELETE(`${dictApi.delete}?id=${id}`);
 }
 
-export async function getDictItemList(params: { dictId: string }): Promise<Result<PageResult<SysDictItem>>> {
+export function getDictItemList(params: { dictId: string }) {
   return GET(dictItemApi.list, params);
 }
 
-export async function saveDictItem(data: SysDictItem): Promise<Result<void>> {
+export function saveDictItem(data: SysDictItem) {
   return POST(dictItemApi.save, data);
 }
 
-export async function deleteDictItem(id: string): Promise<Result<void>> {
+export function deleteDictItem(id: string) {
   return DELETE(`${dictItemApi.delete}?id=${id}`);
 }

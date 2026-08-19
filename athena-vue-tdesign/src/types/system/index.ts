@@ -46,7 +46,7 @@ export interface SysDict {
 }
 
 export interface SysDictItem {
-  id: string;
+  id?: string;
   dictId: string;
   label: string;
   value: string;
@@ -59,6 +59,9 @@ export interface SysPermission {
   name: string;
   url: string;
   component: string;
+  frameSrc: string;
+  frameBlank: number;
+  redirect: string;
   perms: string;
   type: number;
   icon: string;

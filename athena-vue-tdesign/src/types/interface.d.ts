@@ -15,16 +15,6 @@ export interface RouteMeta {
   frameBlank?: boolean;
 }
 
-export interface RouteItem {
-  path: string;
-  name: string;
-  component?: Component | string;
-  components?: Component;
-  redirect?: string;
-  meta: RouteMeta;
-  children?: Array<RouteItem>;
-}
-
 export interface MenuRoute {
   // TODO: menuitem 组件实际支持 string 类型但是类型错误，暂时使用 any 类型避免打包错误待组件类型修复
   path: any;
@@ -42,20 +32,6 @@ export interface MenuRoute {
 
 export type ModeType = 'dark' | 'light';
 
-interface OriginRoute {
-  menuUrl: string;
-  menuName?: string;
-  hidden?: boolean;
-  outLink?: string;
-  affix?: boolean;
-  cacheable?: boolean;
-  iconPrefix?: string;
-  icon?: string;
-  badge?: string | number;
-  isSingle?: boolean;
-  children: Array<OriginRoute>;
-}
-
 interface BaseTree {
   info: any;
   key: string;
@@ -65,10 +41,6 @@ interface BaseTree {
   children: Array<BaseTree>;
 }
 
-export interface UserInfo {
-  name: string;
-  roles: string[];
-}
 export interface UserState {
   /* token: string
   userInfo: {

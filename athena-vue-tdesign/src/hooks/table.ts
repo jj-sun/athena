@@ -1,11 +1,4 @@
-import type {
-  PageInfo,
-  PaginationProps,
-  PrimaryTableCol,
-  TableColumnController,
-  TableProps,
-  TableRowData,
-} from 'tdesign-vue-next';
+import type { PageInfo, PrimaryTableCol, TableColumnController, TableProps, TableRowData } from 'tdesign-vue-next';
 import type { Ref } from 'vue';
 import { computed, reactive, ref, shallowReactive } from 'vue';
 
@@ -78,17 +71,19 @@ export const useRowKey = function (propName: string) {
   const rowKey: TableProps['rowKey'] = propName;
   return rowKey;
 };
-
-type RowSelectKey = string | number;
-
 export const useRowSelection = function () {
   const selectedRowKeys = ref<TableProps['selectedRowKeys']>([]);
   const onSelectChange: TableProps['onSelectChange'] = (tempSelectRows, ctx) => {
     selectedRowKeys.value = tempSelectRows;
+    console.log(ctx);
+  };
+  const onClearSelected = () => {
+    selectedRowKeys.value = []
   };
   return {
     selectedRowKeys,
     onSelectChange,
+    onClearSelected,
   };
 };
 

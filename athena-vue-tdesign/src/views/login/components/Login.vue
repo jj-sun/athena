@@ -68,7 +68,7 @@
     </template>
 
     <t-form-item v-if="type !== 'qrcode'" class="btn-container">
-      <t-button block size="large" type="submit"> {{ t('pages.login.signIn') }} </t-button>
+      <t-button block size="large" type="submit" :loading="loading"> {{ t('pages.login.signIn') }} </t-button>
     </t-form-item>
 
     <div class="switch-container">
@@ -87,11 +87,10 @@ import { MessagePlugin } from 'tdesign-vue-next';
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import { login } from '@/api/base/auth.ts';
+import { login } from '@/api/base/auth';
 import { useCounter } from '@/hooks';
 import { t } from '@/locales';
 import { useUserStore } from '@/store';
-import type { LoginInfo } from '@/types/base/index.ts';
 
 const userStore = useUserStore();
 
@@ -136,19 +135,27 @@ const sendCode = () => {
   });
 };
 
-const onSubmit = async (ctx: SubmitContext) => {
+const loading = ref(false);
+
+const onSubmit = (ctx: SubmitContext) => {
   if (ctx.validateResult === true) {
-    try {
-      const loginRes: LoginInfo = await login(formData.value.username, formData.value.password);
-      userStore.saveUser(loginRes);
-      MessagePlugin.success('登录成功');
-      const redirect = route.query.redirect as string;
-      const redirectUrl = redirect ? decodeURIComponent(redirect) : '/';
-      router.push(redirectUrl);
-    } catch (e) {
-      console.log(e);
-      MessagePlugin.error(e.message);
-    }
+    if (loading.value) return;
+    loading.value = true;
+    login(formData.value.username, formData.value.password)
+      .then((loginRes) => {
+        userStore.saveUser(loginRes);
+        MessagePlugin.success('登录成功');
+        const redirect = route.query.redirect as string;
+        const redirectUrl = redirect || '/';
+        router.replace(redirectUrl);
+      })
+      .catch((err) => {
+        console.log('登录失败', err);
+        MessagePlugin.error(err?.message || '登录失败');
+      })
+      .finally(() => {
+        loading.value = false;
+      });
   }
 };
 </script>

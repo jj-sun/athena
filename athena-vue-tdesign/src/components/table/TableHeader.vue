@@ -17,9 +17,7 @@
     <div style="clear: both"></div>
     <div v-show="showMessage" class="mt-2_5 w-full">
       <t-alert theme="info">
-        <template #message>
-          已选择 {{ selectedRowSize }} 项
-        </template>
+        <template #message> 已选择 {{ selectedRowSize }} 项 </template>
         <template #operation>
           <span @click="clearSelected">清空</span>
         </template>
@@ -58,18 +56,18 @@ export default defineComponent({
       default: 0,
     },
   },
-  emits: ['doRefresh', 'doTableSetting', 'clearSelected'],
+  emits: ['do-refresh', 'do-table-setting', 'clear-selected'],
   setup(props, { emit }) {
     const doRefresh = function () {
-      emit('doRefresh');
+      emit('do-refresh');
     };
 
     const onUpdateTable = function (tableColumns: Array<TablePropsType>) {
-      emit('doTableSetting', tableColumns);
+      emit('do-table-setting', tableColumns);
     };
 
     const clearSelected = function () {
-      emit('clearSelected');
+      emit('clear-selected');
     };
 
     return {

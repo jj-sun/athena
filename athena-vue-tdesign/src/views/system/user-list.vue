@@ -48,7 +48,7 @@
             :selected-row-size="selectedRowKeys.length"
             :table-columns="tableColumns"
             @do-refresh="loadData"
-            @clear-selected="onSelectChange([])"
+            @clear-selected="onClearSelected"
             @do-table-setting="onUpdateTable"
           >
             <template #action>
@@ -72,7 +72,7 @@
                 <t-dropdown-menu>
                   <t-dropdown-item value="1" @click="onBatchDelete">
                     批量删除
-                    <template #icon>
+                    <template #prefixIcon>
                       <delete-icon />
                     </template>
                   </t-dropdown-item>
@@ -89,7 +89,6 @@
             :column-controller="columnControllerConfig"
             table-layout="fixed"
             :row-key="rowKey"
-            :scroll="{ x: 'max-content' }"
             @select-change="onSelectChange"
           >
             <template #sex="{ row }">
@@ -117,9 +116,9 @@
       </t-col>
     </t-row>
 
-    <modal-dialog ref="modalDialogRef" :title="actionTitle" @confirm="onSubmit">
+    <modal-dialog ref="modalDialogRef" :title="actionTitle" @cancel="onCancel" @confirm="onSubmit">
       <template #content>
-        <t-form :model="formData" :label-col="{ span: 6 }">
+        <t-form ref="formRef" :data="formData" :rules="rules" :label-col="{ span: 6 }">
           <t-form-item label="用户名" name="username">
             <t-input v-model:value="formData.username" placeholder="请输入用户名" />
           </t-form-item>
@@ -142,16 +141,10 @@
             </t-radio-group>
           </t-form-item>
           <t-form-item label="所属部门" name="deptCode">
-            <t-tree-select
-              v-model:value="formData.deptCode"
-              placeholder="请选择部门"
-              :data="departmentTree"
-              :keys="{ value: 'id', label: 'deptName' }"
-              clearable
-            />
+            <dept-select v-model:value="formData.deptCode" />
           </t-form-item>
           <t-form-item label="角色" name="roleIdList">
-            <t-select v-model:value="formData.roleIdList" placeholder="请选择角色" multiple :options="roleOptions" />
+            <t-select v-model="formData.roleIdList" placeholder="请选择角色" multiple :options="roleOptions" />
           </t-form-item>
         </t-form>
       </template>
@@ -165,7 +158,7 @@
       @confirm="onSubmitPassword"
       @cancel="passwordDialogVisible = false"
     >
-      <t-form :model="passwordForm" :label-col="{ span: 5 }">
+      <t-form :data="passwordForm" :label-col="{ span: 5 }">
         <t-form-item label="用户名">
           <t-input v-model:value="passwordForm.username" disabled />
         </t-form-item>
@@ -181,7 +174,7 @@
 </template>
 <script lang="ts" setup>
 import { DeleteIcon, DownloadIcon, KeyIcon, MoreIcon, PlusIcon, UploadIcon } from 'tdesign-icons-vue-next';
-import type { TreeProps } from 'tdesign-vue-next';
+import type { FormInstanceFunctions, FormProps, TreeProps } from 'tdesign-vue-next';
 import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
 import { getCurrentInstance, onMounted, reactive, ref, useTemplateRef } from 'vue';
 
@@ -196,6 +189,7 @@ import {
   saveUser,
   updateUser,
 } from '@/api/system/user';
+import DeptSelect from '@/components/dept/index.vue';
 import ModalDialog from '@/components/ModalDialog.vue';
 import TableHeader from '@/components/table/TableHeader.vue';
 import TableSearch from '@/components/table/TableSearch.vue';
@@ -209,14 +203,16 @@ import {
   useTableHeight,
 } from '@/hooks/table';
 import type { TablePropsType } from '@/types/components';
-import type { SysDept, SysRole, SysUser } from '@/types/system';
+import type { SysRole, SysUser } from '@/types/system';
 import { sortColumns } from '@/utils';
 
 const { tableLoading, dataList, tableHeight, indexColumn, handleSuccess } = useTable();
 const rowKey = useRowKey('id');
 const pagination = usePagination(loadData);
-const { selectedRowKeys, onSelectChange } = useRowSelection();
-const { columnControllerConfig } = useColumnControllerConfig({});
+const { selectedRowKeys, onSelectChange, onClearSelected } = useRowSelection();
+const { columnControllerConfig } = useColumnControllerConfig({
+  fields: ['email', 'mobile', 'sex', 'avatar', 'delFlag', 'ctime'],
+});
 
 const searchForm = reactive({
   username: '',
@@ -228,10 +224,10 @@ const expandAllFlag = ref(false);
 const deptSearch = ref('');
 const selectedDeptKeys = ref([] as Array<string>);
 const departmentTree = ref([] as Array<any>);
-const deptOptions = ref([] as Array<SysDept>);
 const roleOptions = ref([] as Array<SysRole>);
 const deptFilter = ref<TreeProps['filter']>(null);
 
+const formRef = ref<FormInstanceFunctions>(null);
 const modalDialogRef = useTemplateRef('modalDialogRef');
 const actionTitle = ref('新增用户');
 const isAdd = ref(true);
@@ -247,6 +243,45 @@ const formData = reactive<SysUser>({
   deptCode: '',
   roleIdList: [],
 });
+
+const rules: FormProps['rules'] = {
+  username: [
+    {
+      required: true,
+      message: '用户名必填',
+      type: 'error',
+    },
+  ],
+  realname: [
+    {
+      required: true,
+      message: '姓名必填',
+      type: 'error',
+    },
+  ],
+  password: [
+    {
+      required: true,
+      message: '密码必填',
+      type: 'error',
+    },
+  ],
+  deptCode: [
+    {
+      required: true,
+      message: '部门必选',
+      type: 'error',
+    },
+  ],
+  roleIdList: [
+    {
+      required: true,
+      message: '角色必选',
+      type: 'error',
+      trigger: 'change',
+    },
+  ],
+};
 
 const passwordDialogVisible = ref(false);
 const passwordForm = reactive({
@@ -318,57 +353,61 @@ function resetSearch() {
   loadData();
 }
 
-async function loadData() {
+function loadData() {
   tableLoading.value = true;
-  try {
-    const params: any = {
-      page: pagination.current,
-      pageSize: pagination.pageSize,
-      ...searchForm,
-    };
-    if (selectedDeptKeys.value.length > 0) {
-      params.deptCode = selectedDeptKeys.value.join(',');
-    }
-    const res = await getUserList(params);
-    handleSuccess(res.list);
-    pagination.setTotalSize(res.total);
-  } catch (error) {
-    console.error('加载用户列表失败', error);
-  } finally {
-    tableLoading.value = false;
+  const params: any = {
+    page: pagination.current,
+    pageSize: pagination.pageSize,
+    ...searchForm,
+  };
+  if (selectedDeptKeys.value.length > 0) {
+    params.deptCode = selectedDeptKeys.value.join(',');
   }
+  getUserList(params)
+    .then((res) => {
+      handleSuccess(res.list);
+      pagination.setTotalSize(res.total);
+    })
+    .catch((err) => {
+      console.error('加载用户列表失败', err);
+      MessagePlugin.error('加载用户列表失败');
+    })
+    .finally(() => {
+      tableLoading.value = false;
+    });
+}
+function loadDeptTree() {
+  getDeptList()
+    .then((res) => {
+      departmentTree.value = res;
+    })
+    .catch((err) => {
+      console.error('加载部门失败', err);
+      MessagePlugin.error('加载部门失败');
+    });
+}
+function loadRoleOptions() {
+  getRoleSelect()
+    .then((res) => {
+      roleOptions.value = res;
+    })
+    .catch((err) => {
+      console.error('加载角色失败', err);
+      MessagePlugin.error('加载角色失败');
+    });
 }
 
-async function loadDeptTree() {
-  try {
-    const res = await getDeptList();
-    departmentTree.value = res;
-  } catch (error) {
-    console.error('加载部门失败', error);
-  }
-}
-
-async function loadRoleOptions() {
-  try {
-    const res = await getRoleSelect();
-    roleOptions.value = res;
-  } catch (error) {
-    console.error('加载角色失败', error);
-  }
-}
-
-function deptSearchChange(state: any) {
+function deptSearchChange() {
   if (!deptSearch.value) {
     deptFilter.value = null;
     return;
   }
   deptFilter.value = (node: any) => {
-    const rs = (node.label as string).includes(deptSearch.value);
-    return rs;
+    return (node.label as string).includes(deptSearch.value);
   };
 }
 
-function onDeptCheck(checked) {
+function onDeptCheck(checked: any) {
   selectedDeptKeys.value = checked;
   loadData();
 }
@@ -389,85 +428,79 @@ function onAdd() {
   });
   modalDialogRef.value.toggle();
 }
-
-async function onEdit(record: SysUser) {
+function onEdit(record: SysUser) {
   isAdd.value = false;
   actionTitle.value = '编辑用户';
-  try {
-    const user: SysUser = await getUserInfo(record.id);
-    Object.assign(formData, {
-      id: user.id,
-      username: user.username,
-      realname: user.realname,
-      password: '',
-      email: user.email,
-      mobile: user.mobile,
-      sex: user.sex || 1,
-      deptCode: user.deptCode,
-      roleIdList: user.roleIdList || [],
+
+  getUserInfo(record.id)
+    .then((user) => {
+      Object.assign(formData, {
+        id: user.id,
+        username: user.username,
+        realname: user.realname,
+        password: '',
+        email: user.email,
+        mobile: user.mobile,
+        sex: user.sex || 1,
+        deptCode: user.deptCode,
+        roleIdList: user.roleIdList || [],
+      });
+      modalDialogRef.value?.toggle();
+    })
+    .catch((err) => {
+      console.log('获取用户信息失败', err);
+      MessagePlugin.error('获取用户信息失败');
     });
-    modalDialogRef.value?.toggle();
-  } catch (error) {
-    MessagePlugin.error('获取用户信息失败');
-  }
 }
 
 async function onSubmit() {
-  if (!formData.username) {
-    MessagePlugin.error('请输入用户名');
-    return;
-  }
-  if (!formData.realname) {
-    MessagePlugin.error('请输入姓名');
-    return;
-  }
-  if (!formData.email) {
-    MessagePlugin.error('请输入邮箱');
-    return;
-  }
-  if (isAdd.value && !formData.password) {
-    MessagePlugin.error('请输入密码');
-    return;
-  }
-
-  try {
-    if (isAdd.value) {
-      await saveUser(formData);
-      MessagePlugin.success('新增用户成功');
-    } else {
-      await updateUser(formData);
-      MessagePlugin.success('更新用户成功');
+  const validateResult = await formRef.value.validate();
+  if (validateResult === true) {
+    try {
+      let msg = '新增用户成功';
+      if (isAdd.value) {
+        await saveUser(formData);
+      } else {
+        await updateUser(formData);
+        msg = '更新用户成功';
+      }
+      void MessagePlugin.success(msg);
+      modalDialogRef.value?.close();
+      loadData();
+    } catch (error: any) {
+      void MessagePlugin.error(error?.response?.data?.msg || '操作失败');
     }
-    modalDialogRef.value?.close();
-    loadData();
-  } catch (error: any) {
-    MessagePlugin.error(error?.response?.data?.msg || '操作失败');
   }
 }
-
-async function onDelete(record: SysUser) {
+function onCancel() {
+  formRef.value.clearValidate();
+}
+function onDelete(record: SysUser) {
   const confirmDia = DialogPlugin.confirm({
     header: '提示',
     body: '确定要删除此用户吗？',
     cancelBtn: '取消',
     confirmBtn: '删除',
     onConfirm: async () => {
-      try {
-        await deleteUser(record.id);
-        MessagePlugin.success('删除成功');
-        loadData();
-      } catch (error) {
-        MessagePlugin.error('删除失败');
-      } finally {
-        confirmDia.destroy();
-      }
+      deleteUser(record.id)
+        .then(() => {
+          MessagePlugin.success('删除成功');
+          loadData();
+        })
+        .catch((err) => {
+          console.log('删除失败', err);
+          MessagePlugin.error('删除失败');
+        })
+        .finally(() => {
+          confirmDia.destroy();
+        });
     },
   });
 }
 
-async function onBatchDelete() {
+function onBatchDelete() {
   if (selectedRowKeys.value.length === 0) {
-    MessagePlugin.warning('请选择要删除的用户');
+    void MessagePlugin.warning('请选择要删除的用户');
     return;
   }
   const confirmDia = DialogPlugin.confirm({
@@ -476,16 +509,18 @@ async function onBatchDelete() {
     cancelBtn: '取消',
     confirmBtn: '删除',
     onConfirm: async () => {
-      try {
-        await deleteUserBatch(selectedRowKeys.value);
-        MessagePlugin.success('批量删除成功');
-        loadData();
-        onSelectChange([]);
-      } catch (error) {
-        MessagePlugin.error('批量删除失败');
-      } finally {
-        confirmDia.destroy();
-      }
+      deleteUserBatch(selectedRowKeys.value as string[])
+        .then(() => {
+          MessagePlugin.success('批量删除成功');
+          loadData();
+          onClearSelected();
+        })
+        .catch(() => {
+          MessagePlugin.error('批量删除失败');
+        })
+        .finally(() => {
+          confirmDia.destroy();
+        });
     },
   });
 }
@@ -498,36 +533,38 @@ function onResetPassword(row: SysUser) {
   passwordDialogVisible.value = true;
 }
 
-async function onSubmitPassword() {
+function onSubmitPassword() {
   if (!passwordForm.password) {
-    MessagePlugin.error('请输入新密码');
+    void MessagePlugin.error('请输入新密码');
     return false;
   }
   if (passwordForm.password.length < 6) {
-    MessagePlugin.error('密码长度不能少于6位');
+    void MessagePlugin.error('密码长度不能少于6位');
     return false;
   }
   if (passwordForm.password !== passwordForm.confirmPassword) {
-    MessagePlugin.error('两次密码输入不一致');
+    void MessagePlugin.error('两次密码输入不一致');
     return false;
   }
-  try {
-    await resetUserPassword(passwordForm.id, passwordForm.password);
-    MessagePlugin.success('密码修改成功');
-    passwordDialogVisible.value = false;
-    return true;
-  } catch (error: any) {
-    MessagePlugin.error(error?.response?.data?.msg || '密码修改失败');
-    return false;
-  }
+  resetUserPassword(passwordForm.id, passwordForm.password)
+    .then(() => {
+      MessagePlugin.success('密码修改成功');
+      passwordDialogVisible.value = false;
+    })
+    .catch((err) => {
+      console.log(err);
+      MessagePlugin.error(err?.message || '密码修改失败');
+    });
 }
 
 function onUpdateTable(newColumns: Array<TablePropsType>) {
   sortColumns(tableColumns, newColumns);
 }
 
-onMounted(async () => {
-  tableHeight.value = await useTableHeight(getCurrentInstance());
+onMounted(() => {
+  useTableHeight(getCurrentInstance()).then((height) => {
+    tableHeight.value = height;
+  });
   loadData();
   loadDeptTree();
   loadRoleOptions();

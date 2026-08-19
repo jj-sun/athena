@@ -3,12 +3,12 @@
     <table-search @search="loadData" @reset-search="resetSearch">
       <template #search-content>
         <t-col :span="3">
-          <t-form-item label="用户名" style="width: 100%;">
+          <t-form-item label="用户名" style="width: 100%">
             <t-input v-model:value="searchForm.username" placeholder="请输入用户名" />
           </t-form-item>
         </t-col>
         <t-col :span="3">
-          <t-form-item label="操作类型" style="width: 100%;">
+          <t-form-item label="操作类型" style="width: 100%">
             <t-radio-group v-model:value="searchForm.logType">
               <t-radio :value="undefined">全部</t-radio>
               <t-radio :value="0">登录日志</t-radio>
@@ -22,9 +22,9 @@
       <table-header :table-columns="tableColumns" :show-message="false" @do-refresh="loadData">
         <template #action>
           <t-button theme="primary">
-                <template #icon><download-icon /></template>
-                导出
-              </t-button>
+            <template #icon><download-icon /></template>
+            导出
+          </t-button>
         </template>
       </table-header>
       <t-table
@@ -38,28 +38,20 @@
           <t-tag v-if="row.logType === 0" theme="success" size="small">登录日志</t-tag>
           <t-tag v-else theme="warning" size="small">操作日志</t-tag>
         </template>
-        <template #params="{ row }">
-          <t-tooltip :content="row.params || '-'" placement="top">
-            <span class="text-ellipsis" style="max-width: 200px; display: inline-block">{{ row.params || '-' }}</span>
-          </t-tooltip>
-        </template>
-        <template #time="{ row }">
-          {{ row.time }}ms
-        </template>
+        <template #time="{ row }"> {{ row.time }}ms </template>
       </t-table>
     </t-card>
   </div>
 </template>
 <script lang="ts" setup>
 import { DownloadIcon } from 'tdesign-icons-vue-next';
+import { MessagePlugin } from 'tdesign-vue-next';
 import { onMounted, reactive } from 'vue';
 
 import { getLogList } from '@/api/system/log';
 import TableHeader from '@/components/table/TableHeader.vue';
 import TableSearch from '@/components/table/TableSearch.vue';
 import { usePagination, useRowKey, useTable, useTableColumn } from '@/hooks/table';
-import type { SysLog } from '@/types/system';
-
 
 const { tableLoading, dataList, indexColumn, handleSuccess } = useTable();
 const rowKey = useRowKey('id');
@@ -120,27 +112,32 @@ function resetSearch() {
   loadData();
 }
 
-async function loadData() {
+function loadData() {
   tableLoading.value = true;
-  try {
-    const params: Record<string, any> = {
-      page: pagination.current,
-      pageSize: pagination.pageSize,
-    };
-    if (searchForm.username) {
-      params.username = searchForm.username;
-    }
-    if (searchForm.logType !== undefined) {
-      params.logType = searchForm.logType;
-    }
-    const res = await getLogList(params);
-    handleSuccess(res.list);
-    pagination.setTotalSize(res.total);
-  } catch (error) {
-    console.error('加载日志列表失败', error);
-  } finally {
-    tableLoading.value = false;
+  const params = {
+    page: pagination.current,
+    pageSize: pagination.pageSize,
+    username: '',
+    logType: -1,
+  };
+  if (searchForm.username) {
+    params.username = searchForm.username;
   }
+  if (searchForm.logType !== undefined) {
+    params.logType = searchForm.logType;
+  }
+  getLogList(params)
+    .then((res) => {
+      handleSuccess(res.list);
+      pagination.setTotalSize(res.total);
+    })
+    .catch((err) => {
+      console.error('加载日志列表失败', err);
+      MessagePlugin.error('加载日志列表失败');
+    })
+    .finally(() => {
+      tableLoading.value = false;
+    });
 }
 
 onMounted(loadData);

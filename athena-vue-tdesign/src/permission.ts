@@ -29,9 +29,9 @@ router.beforeEach(async (to, from, next) => {
     try {
       if (asyncRoutes.length === 0) {
         const routeList = await permissionStore.buildAsyncRoutes();
-        routeList.forEach((item: RouteRecordRaw) => {
+        routeList.forEach((item) => {
           if (item.name && !router.hasRoute(item.name)) {
-            router.addRoute(item);
+            router.addRoute(item as RouteRecordRaw);
           }
         });
 
@@ -44,11 +44,12 @@ router.beforeEach(async (to, from, next) => {
       } else {
         next('/');
       }
-    } catch (error) {
-      //MessagePlugin.error(error.message);
+      NProgress.done();
+    } catch {
+      void MessagePlugin.error('加载菜单失败，请重新登录');
       next({
         path: '/login',
-        query: { redirect: encodeURIComponent(to.fullPath) },
+        query: { redirect: to.fullPath },
       });
       NProgress.done();
     }
@@ -58,7 +59,7 @@ router.beforeEach(async (to, from, next) => {
     } else {
       next({
         path: '/login',
-        query: { redirect: encodeURIComponent(to.fullPath) },
+        query: { redirect: to.fullPath },
       });
     }
     NProgress.done();
@@ -69,11 +70,12 @@ router.afterEach((to) => {
   if (to.path === '/login') {
     const permissionStore = getPermissionStore();
 
-    permissionStore.restoreRoutes();
+    permissionStore.restoreRoutes().finally(() => {
+      NProgress.done();
+    });
     // 不再调用 userStore.logout()：
     // - 显式登出走 Header.handleLogout（已调用 user.logout()）
     // - token 失效走 redirectToLogin（已调用 userStore.logout()）
     // - 路由构建失败走 catch 重定向，此时不应清 token，让用户可立即重试登录
   }
-  NProgress.done();
 });

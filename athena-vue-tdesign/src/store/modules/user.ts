@@ -5,7 +5,6 @@ import Avatar from '@/assets/img_avatar.gif';
 import { usePermissionStore } from '@/store';
 import type { LoginInfo } from '@/types/base';
 import type { UserState } from '@/types/interface';
-import router from '@/router';
 
 const InitUserInfo: UserState = {
   userId: '0',
@@ -62,10 +61,13 @@ export const useUserStore = defineStore('user', {
 
       localStorage.setItem(USER_INFO_KEY, JSON.stringify(userInfo));
     },
-    async logout() {
-      this.setInfo(InitUserInfo);
-      Cookies.remove(USER_TOKEN_KEY);
-      localStorage.clear();
+    logout() {
+      return new Promise<void>((resolve) => {
+        this.setInfo(InitUserInfo);
+        Cookies.remove(USER_TOKEN_KEY);
+        localStorage.clear();
+        resolve();
+      });
     },
   },
   persist: {

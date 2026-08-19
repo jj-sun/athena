@@ -19,7 +19,7 @@
         :selected-row-size="selectedRowKeys.length"
         :table-columns="tableColumns"
         @do-refresh="loadData"
-        @clear-selected="onSelectChange([])"
+        @clear-selected="onClearSelected"
         @do-table-setting="onUpdateTable"
       >
         <template #action>
@@ -35,7 +35,7 @@
             <t-dropdown-menu>
               <t-dropdown-item value="1" @click="onBatchDelete">
                 批量删除
-                <template #icon>
+                <template #prefixIcon>
                   <delete-icon />
                 </template>
               </t-dropdown-item>
@@ -62,18 +62,15 @@
             <t-button theme="primary" ghost size="small" @click="onEdit(row)">编辑</t-button>
             <t-button theme="danger" ghost size="small" @click="onDelete(row)">删除</t-button>
             <t-button theme="primary" ghost size="small" @click="onShowMenu(row)">菜单权限</t-button>
-            <t-button theme="primary" ghost size="small" @click="onShowUsers(row)">
-              <template #icon><user-icon /></template>
-              用户
-            </t-button>
+            <t-button theme="primary" ghost size="small" @click="onShowUsers(row)">用户</t-button>
           </t-space>
         </template>
       </t-table>
     </t-card>
 
-    <modal-dialog ref="modalDialogRef" :title="actionTitle" @confirm="onSubmit">
+    <modal-dialog ref="modalDialogRef" :title="actionTitle" @cancel="onCancel" @confirm="onSubmit">
       <template #content>
-        <t-form :model="formData" :label-col="{ span: 6 }">
+        <t-form ref="formRef" :data="formData" :rules="rules" :label-col="{ span: 6 }">
           <t-form-item label="角色名称" name="roleName">
             <t-input v-model:value="formData.roleName" placeholder="请输入角色名称" />
           </t-form-item>
@@ -158,7 +155,8 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { DeleteIcon, MoreIcon, PlusIcon, UserIcon } from 'tdesign-icons-vue-next';
+import { DeleteIcon, MoreIcon, PlusIcon } from 'tdesign-icons-vue-next';
+import type { FormInstanceFunctions, FormProps } from 'tdesign-vue-next';
 import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
 import { onMounted, reactive, ref, useTemplateRef } from 'vue';
 
@@ -195,8 +193,11 @@ import { sortColumns } from '@/utils';
 const { tableLoading, dataList, indexColumn, handleSuccess } = useTable();
 const rowKey = useRowKey('id');
 const pagination = usePagination(loadData);
-const { selectedRowKeys, onSelectChange } = useRowSelection();
-const { columnControllerConfig } = useColumnControllerConfig({});
+const { selectedRowKeys, onSelectChange, onClearSelected } = useRowSelection();
+const { columnControllerConfig } = useColumnControllerConfig({
+  fields: ['remark', 'delFlag', 'ctime'],
+});
+const formRef = ref<FormInstanceFunctions>(null);
 
 const searchForm = reactive({
   roleName: '',
@@ -213,6 +214,22 @@ const formData = reactive<SysRole>({
   roleCode: '',
   remark: '',
 });
+const rules: FormProps['rules'] = {
+  roleName: [
+    {
+      required: true,
+      message: '角色名必填',
+      type: 'error',
+    },
+  ],
+  roleCode: [
+    {
+      required: true,
+      message: '角色编码必填',
+      type: 'error',
+    },
+  ],
+};
 
 const menuTreeData = ref([] as Array<any>);
 const defaultCheckedKeys = ref([] as Array<string>);
@@ -287,7 +304,7 @@ async function loadData() {
       ...searchForm,
     };
     const res = await getRoleList(params);
-    handleSuccess(res.list);
+    void handleSuccess(res.list);
     pagination.setTotalSize(res.total);
   } catch (error) {
     console.error('加载角色列表失败', error);
@@ -311,68 +328,70 @@ function onAdd() {
 async function onEdit(record: SysRole) {
   isAdd.value = false;
   actionTitle.value = '编辑角色';
-  try {
-    const role = await getRoleInfo(record.id);
-    Object.assign(formData, {
-      id: role.id,
-      roleName: role.roleName,
-      roleCode: role.roleCode,
-      remark: role.remark,
+  getRoleInfo(record.id)
+    .then((role) => {
+      Object.assign(formData, {
+        id: role.id,
+        roleName: role.roleName,
+        roleCode: role.roleCode,
+        remark: role.remark,
+      });
+      modalDialogRef.value?.toggle();
+    })
+    .catch((err) => {
+      console.log(err.message);
+      MessagePlugin.error('获取角色信息失败');
     });
-    modalDialogRef.value?.toggle();
-  } catch (error) {
-    MessagePlugin.error('获取角色信息失败');
-  }
 }
 
 async function onSubmit() {
-  if (!formData.roleName) {
-    MessagePlugin.error('请输入角色名称');
-    return;
-  }
-  if (!formData.roleCode) {
-    MessagePlugin.error('请输入角色编号');
-    return;
-  }
-
-  try {
-    if (isAdd.value) {
-      await saveRole(formData);
-      MessagePlugin.success('新增角色成功');
-    } else {
-      await updateRole(formData);
-      MessagePlugin.success('更新角色成功');
+  const validateResult = await formRef.value.validate();
+  if (validateResult === true) {
+    try {
+      let msg = '新增角色成功';
+      if (isAdd.value) {
+        await saveRole(formData);
+      } else {
+        await updateRole(formData);
+        msg = '更新角色成功';
+      }
+      void MessagePlugin.success(msg);
+      modalDialogRef.value?.close();
+      await loadData();
+    } catch (error: any) {
+      void MessagePlugin.error(error?.response?.data?.msg || '操作失败');
     }
-    modalDialogRef.value?.close();
-    loadData();
-  } catch (error: any) {
-    MessagePlugin.error(error?.response?.data?.msg || '操作失败');
   }
 }
-
-async function onDelete(record: SysRole) {
+function onCancel() {
+  formRef.value.clearValidate();
+}
+function onDelete(record: SysRole) {
   const confirmDia = DialogPlugin.confirm({
     header: '提示',
     body: '是否要删除此角色？',
     cancelBtn: '取消',
     confirmBtn: '删除',
-    onConfirm: async () => {
-      try {
-        await deleteRole(record.id);
-        MessagePlugin.success('删除成功');
-        loadData();
-      } catch (error) {
-        MessagePlugin.error('删除失败');
-      } finally {
-        confirmDia.destroy();
-      }
+    onConfirm: () => {
+      deleteRole(record.id)
+        .then(() => {
+          MessagePlugin.success('删除成功');
+          loadData();
+        })
+        .catch((err) => {
+          console.log(err.message);
+          MessagePlugin.error('删除失败');
+        })
+        .finally(() => {
+          confirmDia.destroy();
+        });
     },
   });
 }
 
 async function onBatchDelete() {
   if (selectedRowKeys.value.length === 0) {
-    MessagePlugin.warning('请选择要删除的角色');
+    void MessagePlugin.warning('请选择要删除的角色');
     return;
   }
   const confirmDia = DialogPlugin.confirm({
@@ -380,17 +399,20 @@ async function onBatchDelete() {
     body: `确定要删除选中的 ${selectedRowKeys.value.length} 个角色吗？`,
     cancelBtn: '取消',
     confirmBtn: '删除',
-    onConfirm: async () => {
-      try {
-        await deleteRoleBatch(selectedRowKeys.value);
-        MessagePlugin.success('批量删除成功');
-        loadData();
-        onSelectChange([]);
-      } catch (error) {
-        MessagePlugin.error('批量删除失败');
-      } finally {
-        confirmDia.destroy();
-      }
+    onConfirm: () => {
+      deleteRoleBatch(selectedRowKeys.value as string[])
+        .then(() => {
+          MessagePlugin.success('批量删除成功');
+          loadData();
+          onClearSelected();
+        })
+        .catch((err) => {
+          console.log(err);
+          MessagePlugin.error('批量删除失败');
+        })
+        .finally(() => {
+          confirmDia.destroy();
+        });
     },
   });
 }
@@ -423,22 +445,25 @@ function onShowUsers(row: SysRole) {
   userModalDrawerRef.value?.toggle();
 }
 
-async function loadRoleUsers() {
+function loadRoleUsers() {
   if (!currentRole.value) return;
   userTableLoading.value = true;
-  try {
-    const res = await getRoleUserList({
-      roleId: currentRole.value.id,
-      page: userPagination.current,
-      pageSize: userPagination.pageSize,
+  getRoleUserList({
+    roleId: currentRole.value.id,
+    page: userPagination.current,
+    pageSize: userPagination.pageSize,
+  })
+    .then((res) => {
+      handleUserSuccess(res.list);
+      userPagination.setTotalSize(res.total);
+    })
+    .catch((err) => {
+      console.error('加载角色用户列表失败', err);
+      MessagePlugin.error('加载角色用户列表失败');
+    })
+    .finally(() => {
+      userTableLoading.value = false;
     });
-    handleUserSuccess(res.list);
-    userPagination.setTotalSize(res.total);
-  } catch (error) {
-    console.error('加载角色用户列表失败', error);
-  } finally {
-    userTableLoading.value = false;
-  }
 }
 
 async function onRemoveUser(row: SysUser) {
@@ -448,16 +473,19 @@ async function onRemoveUser(row: SysUser) {
     body: `确定要从角色"${currentRole.value.roleName}"中移除用户"${row.realname || row.username}"吗？`,
     cancelBtn: '取消',
     confirmBtn: '移除',
-    onConfirm: async () => {
-      try {
-        await removeUserFromRole(currentRole.value!.id, row.id);
-        MessagePlugin.success('移除成功');
-        loadRoleUsers();
-      } catch (error) {
-        MessagePlugin.error('移除失败');
-      } finally {
-        confirmDia.destroy();
-      }
+    onConfirm: () => {
+      removeUserFromRole(currentRole.value!.id, row.id)
+        .then(() => {
+          MessagePlugin.success('移除成功');
+          loadRoleUsers();
+        })
+        .catch((err) => {
+          console.log(err);
+          MessagePlugin.error('移除失败');
+        })
+        .finally(() => {
+          confirmDia.destroy();
+        });
     },
   });
 }
@@ -466,38 +494,42 @@ function onUserDrawerConfirm() {
   userModalDrawerRef.value?.close();
 }
 
-async function onOpenAddUserDialog() {
+function onOpenAddUserDialog() {
   if (!currentRole.value) return;
   selectedUserIds.value = [];
-  try {
-    const res = await getUserList({ page: 1, pageSize: 9999 });
-    const currentUserIds = new Set(userList.map((u: SysUser) => u.id));
-    availableUserOptions.value = res.list
-      .filter((u: SysUser) => !currentUserIds.has(u.id))
-      .map((u: SysUser) => ({ label: `${u.realname || u.username}（${u.username}）`, value: u.id }));
-    addUserDialogRef.value?.toggle();
-  } catch (error) {
-    MessagePlugin.error('加载用户列表失败');
-  }
+  getUserList({ page: 1, pageSize: 9999 })
+    .then((res) => {
+      const currentUserIds = new Set(userList.map((u: SysUser) => u.id));
+      availableUserOptions.value = res.list
+        .filter((u: SysUser) => !currentUserIds.has(u.id))
+        .map((u: SysUser) => ({ label: `${u.realname || u.username}（${u.username}）`, value: u.id }));
+      addUserDialogRef.value?.toggle();
+    })
+    .catch((err) => {
+      console.log(err);
+      MessagePlugin.error('加载用户列表失败');
+    });
 }
 
 async function onAddUserConfirm() {
   if (!currentRole.value) return;
   if (selectedUserIds.value.length === 0) {
-    MessagePlugin.warning('请选择要添加的用户');
+    void MessagePlugin.warning('请选择要添加的用户');
     return;
   }
-  try {
-    await addUserToRole({
-      roleId: currentRole.value.id,
-      userIdList: selectedUserIds.value,
+  addUserToRole({
+    roleId: currentRole.value.id,
+    userIdList: selectedUserIds.value,
+  })
+    .then(() => {
+      MessagePlugin.success('添加用户成功');
+      addUserDialogRef.value?.close();
+      loadRoleUsers();
+    })
+    .catch((err) => {
+      console.log(err);
+      MessagePlugin.error('添加用户失败');
     });
-    MessagePlugin.success('添加用户成功');
-    addUserDialogRef.value?.close();
-    loadRoleUsers();
-  } catch (error: any) {
-    MessagePlugin.error(error?.response?.data?.msg || '添加用户失败');
-  }
 }
 
 onMounted(loadData);

@@ -1,4 +1,4 @@
-import type { AxiosInstance, AxiosRequestHeaders, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import type { AxiosRequestHeaders, InternalAxiosRequestConfig } from 'axios';
 import Axios from 'axios';
 import Cookies from 'js-cookie';
 import NProgress from 'nprogress';
@@ -8,7 +8,6 @@ import { MessagePlugin } from 'tdesign-vue-next';
 import { USER_TOKEN_KEY } from '@/constants';
 import router from '@/router';
 import { useUserStore } from '@/store';
-import type { Result } from '@/types/axios';
 
 const baseURL: string = import.meta.env.VITE_API_URL || '/athena';
 export const CONTENT_TYPE = 'Content-Type';
@@ -34,7 +33,7 @@ export class BusinessError extends Error {
   }
 }
 
-const service: AxiosInstance = Axios.create({
+const service = Axios.create({
   baseURL,
   timeout: 10 * 60 * 1000,
 });
@@ -43,8 +42,8 @@ service.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     config.headers ??= {} as AxiosRequestHeaders;
     const token = Cookies.get(USER_TOKEN_KEY);
-    if (!config.headers[CONTENT_TYPE]) {
-      config.headers[CONTENT_TYPE] = APPLICATION_JSON;
+    if (!config.headers.has(CONTENT_TYPE)) {
+      config.headers.set(CONTENT_TYPE, APPLICATION_JSON);
     }
     if (config.headers[CONTENT_TYPE] === FORM_URLENCODED) {
       config.data = qs.stringify(config.data);
@@ -60,7 +59,7 @@ service.interceptors.request.use(
 );
 
 service.interceptors.response.use(
-  (response: AxiosResponse<Result<any>>) => {
+  (response) => {
     const { code, message, data } = response.data || {};
     // 鲁棒识别 Sa-Token NotLoginException（后端通用异常处理器返回 code=500 + 含 token/未登录 的 message）
     if (code === 500 && message && /token|未登录|登录已过期/i.test(message)) {
@@ -91,20 +90,39 @@ service.interceptors.response.use(
 // 处理登录跳转
 const redirectToLogin = () => {
   if (isRedirecting) return;
+  // 已在登录页则不再重复跳转，避免 redirect 参数嵌套
+  if (router.currentRoute.value.path === '/login') return;
   isRedirecting = true;
   NProgress.start();
 
-  MessagePlugin.error('登录已过期，请重新登录');
+  void MessagePlugin.error('登录已过期，请重新登录');
 
   const userStore = useUserStore();
-  userStore.logout();
-  // 重定向到登录页，保留当前路径以便登录后跳回
-  router.replace({
-    path: '/login',
-    query: { redirect: router.currentRoute.value.fullPath },
-  });
-  isRedirecting = false;
-  NProgress.done();
+  userStore
+    .logout()
+    .catch((e) => {
+      console.error('跳转登录页失败:', e);
+      // 降级方案：使用 window.location
+      window.location.href = '/login';
+    })
+    .finally(() => {
+      console.log('准备跳转登录页');
+      router
+        .replace({
+          path: '/login',
+          query: { redirect: router.currentRoute.value.fullPath },
+        })
+        .then(() => {
+          console.log('跳转成功');
+        })
+        .catch((err) => {
+          console.error('路由跳转失败:', err);
+        })
+        .finally(() => {
+          isRedirecting = false;
+          NProgress.done();
+        });
+    });
 };
 
 export default service;

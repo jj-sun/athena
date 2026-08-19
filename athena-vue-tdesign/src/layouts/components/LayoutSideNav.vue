@@ -23,11 +23,9 @@ const route = useRoute();
 const permissionStore = usePermissionStore();
 const settingStore = useSettingStore();
 const { routers: menuRouters } = storeToRefs(permissionStore);
-console.log(menuRouters);
 const sideMenu = computed(() => {
   const { layout, splitMenu } = settingStore;
   let newMenuRouters = menuRouters.value as Array<MenuRoute>;
-  console.log(newMenuRouters);
   if (layout === 'mix' && splitMenu) {
     newMenuRouters.forEach((menu) => {
       if (route.path.indexOf(menu.path) === 0) {

@@ -19,7 +19,7 @@
         :selected-row-size="selectedRowKeys.length"
         :table-columns="tableColumns"
         @do-refresh="loadData"
-        @clear-selected="onSelectChange([])"
+        @clear-selected="onClearSelected"
         @do-table-setting="onUpdateTable"
       >
         <template #action>
@@ -35,7 +35,7 @@
             <t-dropdown-menu>
               <t-dropdown-item value="1" @click="onBatchDelete">
                 批量删除
-                <template #icon>
+                <template #prefixIcon>
                   <delete-icon />
                 </template>
               </t-dropdown-item>
@@ -68,7 +68,7 @@
 
     <modal-dialog ref="modalDialogRef" :title="actionTitle" @confirm="onSubmit">
       <template #content>
-        <t-form :model="formData" :label-col="{ span: 6 }">
+        <t-form ref="formRef" :data="formData" :rules="rules" :label-col="{ span: 6 }">
           <t-form-item label="字典名称" name="dictName">
             <t-input v-model:value="formData.dictName" placeholder="请输入字典名称" />
           </t-form-item>
@@ -92,25 +92,25 @@
       </template>
     </modal-dialog>
 
-    <modal-dialog ref="dictItemModalRef" title="字典项管理" @confirm="onDictItemConfirm">
+    <modal-dialog ref="dictItemModalRef" title="字典项管理" @cancel="onCancel" @confirm="onDictItemConfirm">
       <template #content>
         <div v-if="currentDictId">
           <t-row :gutter="[10]">
-            <t-col :span="8">
+            <t-col :span="4">
               <t-input v-model:value="newDictItem.label" placeholder="标签" />
             </t-col>
-            <t-col :span="8">
+            <t-col :span="4">
               <t-input v-model:value="newDictItem.value" placeholder="值" />
             </t-col>
-            <t-col :span="8">
+            <t-col :span="4">
               <t-button theme="primary" @click="addDictItem">添加</t-button>
             </t-col>
           </t-row>
-          <t-table :data="dictItems" :columns="dictItemColumns" :pagination="false" :row-key="(row) => row.id">
+          <t-table :data="dictItems" :columns="dictItemColumns" :disable-data-page="true" row-key="id">
             <template #actions="{ row }">
               <t-space>
                 <t-button theme="primary" ghost size="small" @click="editDictItem(row)">编辑</t-button>
-                <t-button theme="danger" ghost size="small" @click="deleteDictItem(row)">删除</t-button>
+                <t-button theme="danger" ghost size="small" @click="onDeleteDictItem(row)">删除</t-button>
               </t-space>
             </template>
           </t-table>
@@ -121,6 +121,7 @@
 </template>
 <script lang="ts" setup>
 import { DeleteIcon, MoreIcon, PlusIcon } from 'tdesign-icons-vue-next';
+import type { FormInstanceFunctions, FormProps } from 'tdesign-vue-next';
 import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
 import { onMounted, reactive, ref, useTemplateRef } from 'vue';
 
@@ -145,13 +146,13 @@ import { sortColumns } from '@/utils';
 const { tableLoading, dataList, indexColumn, handleSuccess } = useTable();
 const rowKey = useRowKey('id');
 const pagination = usePagination(loadData);
-const { selectedRowKeys, onSelectChange } = useRowSelection();
+const { selectedRowKeys, onSelectChange, onClearSelected } = useRowSelection();
 
 const searchForm = reactive({
   dictName: '',
   dictCode: '',
 });
-
+const formRef = ref<FormInstanceFunctions>(null);
 const modalDialogRef = useTemplateRef('modalDialogRef');
 const dictItemModalRef = useTemplateRef('dictItemModalRef');
 const actionTitle = ref('添加字典');
@@ -164,6 +165,22 @@ const formData = reactive<SysDict>({
   type: 2,
   description: '',
 });
+const rules: FormProps['rules'] = {
+  dictName: [
+    {
+      required: true,
+      message: '字典名必填',
+      type: 'error',
+    },
+  ],
+  dictCode: [
+    {
+      required: true,
+      message: '字典编码必填',
+      type: 'error',
+    },
+  ],
+};
 
 const currentDictId = ref('');
 const dictItems = ref([] as Array<SysDictItem>);
@@ -206,6 +223,11 @@ const tableColumns = useTableColumn(
 const dictItemColumns = useTableColumn(
   [
     {
+      title: '序号',
+      colKey: 'serial-number',
+      width: 60,
+    },
+    {
       title: '标签',
       colKey: 'itemText',
     },
@@ -216,6 +238,7 @@ const dictItemColumns = useTableColumn(
     {
       title: '排序',
       colKey: 'sortOrder',
+      width: 60,
     },
     {
       title: '操作',
@@ -231,22 +254,25 @@ function resetSearch() {
   loadData();
 }
 
-async function loadData() {
+function loadData() {
   tableLoading.value = true;
-  try {
-    const params = {
-      page: pagination.current,
-      pageSize: pagination.pageSize,
-      ...searchForm,
-    };
-    const res = await getDictList(params);
-    handleSuccess(res.list);
-    pagination.setTotalSize(res.total);
-  } catch (error) {
-    console.error('加载字典列表失败', error);
-  } finally {
-    tableLoading.value = false;
-  }
+  const params = {
+    page: pagination.current,
+    pageSize: pagination.pageSize,
+    ...searchForm,
+  };
+  getDictList(params)
+    .then((res) => {
+      handleSuccess(res.list);
+      pagination.setTotalSize(res.total);
+    })
+    .catch((err) => {
+      console.error('加载字典列表失败', err);
+      MessagePlugin.error('加载字典列表失败');
+    })
+    .finally(() => {
+      tableLoading.value = false;
+    });
 }
 
 function onAdd() {
@@ -262,70 +288,73 @@ function onAdd() {
   modalDialogRef.value?.toggle();
 }
 
-async function onEdit(record: SysDict) {
+function onEdit(record: SysDict) {
   isAdd.value = false;
   actionTitle.value = '编辑字典';
-  try {
-    const dict = await getDictInfo(record.id);
-    Object.assign(formData, {
-      id: dict.id,
-      dictName: dict.dictName,
-      dictCode: dict.dictCode,
-      type: dict.type || 2,
-      description: dict.description || '',
+  getDictInfo(record.id)
+    .then((dict) => {
+      Object.assign(formData, {
+        id: dict.id,
+        dictName: dict.dictName,
+        dictCode: dict.dictCode,
+        type: dict.type || 2,
+        description: dict.description || '',
+      });
+      modalDialogRef.value?.toggle();
+    })
+    .catch((err) => {
+      console.error('获取字典信息失败', err);
+      MessagePlugin.error('获取字典信息失败');
     });
-    modalDialogRef.value?.toggle();
-  } catch (error) {
-    MessagePlugin.error('获取字典信息失败');
-  }
 }
 
 async function onSubmit() {
-  if (!formData.dictName) {
-    MessagePlugin.error('请输入字典名称');
-    return;
-  }
-  if (!formData.dictCode) {
-    MessagePlugin.error('请输入字典编号');
-    return;
-  }
-
-  try {
-    if (isAdd.value) {
-      await saveDict(formData);
-      MessagePlugin.success('新增字典成功');
-    } else {
-      await updateDict(formData);
-      MessagePlugin.success('更新字典成功');
+  const validateResult = await formRef.value.validate();
+  if (validateResult === true) {
+    try {
+      if (isAdd.value) {
+        await saveDict(formData);
+        void MessagePlugin.success('新增字典成功');
+      } else {
+        await updateDict(formData);
+        void MessagePlugin.success('更新字典成功');
+      }
+      modalDialogRef.value?.close();
+      loadData();
+    } catch (err: any) {
+      console.error('字典信息操作失败', err);
+      void MessagePlugin.error('字典信息操作失败');
     }
-    modalDialogRef.value?.close();
-    loadData();
-  } catch (error: any) {
-    MessagePlugin.error(error?.response?.data?.msg || '操作失败');
   }
 }
+function onCancel() {
+  formRef.value.clearValidate();
+}
 
-async function onDelete(record: SysDict) {
+function onDelete(record: SysDict) {
   const confirmDia = DialogPlugin.confirm({
     header: '提示',
     body: '确定要删除此字典吗？',
     cancelBtn: '取消',
     confirmBtn: '删除',
-    onConfirm: async () => {
-      try {
-        await deleteDict(record.id);
-        MessagePlugin.success('删除成功');
-        loadData();
-      } catch (error) {
-        MessagePlugin.error('删除失败');
-      } finally {
-        confirmDia.destroy();
-      }
+    onConfirm: () => {
+      deleteDict(record.id)
+        .then(() => {
+          MessagePlugin.success('字典删除成功');
+          loadData();
+        })
+        .catch((err) => {
+          console.log('字典删除失败', err);
+          MessagePlugin.error('子带你删除失败');
+        })
+        .finally(() => {
+          confirmDia.destroy();
+        });
     },
   });
 }
 
-async function onBatchDelete() {
+function onBatchDelete() {
   if (selectedRowKeys.value.length === 0) {
     MessagePlugin.warning('请选择要删除的字典');
     return;
@@ -335,36 +364,41 @@ async function onBatchDelete() {
     body: `确定要删除选中的 ${selectedRowKeys.value.length} 个字典吗？`,
     cancelBtn: '取消',
     confirmBtn: '删除',
-    onConfirm: async () => {
-      try {
-        await deleteDict(selectedRowKeys.value[0]);
-        MessagePlugin.success('批量删除成功');
-        loadData();
-        onSelectChange([]);
-      } catch (error) {
-        MessagePlugin.error('批量删除失败');
-      } finally {
-        confirmDia.destroy();
-      }
+    onConfirm: () => {
+      deleteDict(selectedRowKeys.value[0] as string)
+        .then(() => {
+          MessagePlugin.success('字典批量删除成功');
+          loadData();
+          onClearSelected();
+        })
+        .catch((err) => {
+          console.log('字典批量删除失败', err);
+          MessagePlugin.error('字典批量删除失败');
+        })
+        .finally(() => {
+          confirmDia.destroy();
+        });
     },
   });
 }
 
-async function onShowDictItem(record: SysDict) {
+function onShowDictItem(record: SysDict) {
   currentDictId.value = record.id;
-  try {
-    const res = await getDictItemList({ dictId: record.id });
-    dictItems.value = res.list;
-  } catch (error) {
-    dictItems.value = [];
-    console.error('加载字典项失败', error);
-  }
-  newDictItem.label = '';
-  newDictItem.value = '';
-  dictItemModalRef.value?.toggle();
+  getDictItemList({ dictId: record.id })
+    .then((res) => {
+      dictItems.value = res.list;
+      newDictItem.label = '';
+      newDictItem.value = '';
+      dictItemModalRef.value?.toggle();
+    })
+    .catch((err) => {
+      dictItems.value = [];
+      console.error('加载字典项失败', err);
+      MessagePlugin.error('加载字典项失败');
+    });
 }
 
-async function addDictItem() {
+function addDictItem() {
   if (!newDictItem.label) {
     MessagePlugin.error('请输入标签');
     return;
@@ -373,42 +407,47 @@ async function addDictItem() {
     MessagePlugin.error('请输入值');
     return;
   }
-  try {
-    await saveDictItem({
-      dictId: currentDictId.value,
-      label: newDictItem.label,
-      value: newDictItem.value,
-      sortOrder: dictItems.value.length + 1,
+  saveDictItem({
+    dictId: currentDictId.value,
+    label: newDictItem.label,
+    value: newDictItem.value,
+    sortOrder: dictItems.value.length + 1,
+  })
+    .then(() => {
+      MessagePlugin.success('添加字典项成功');
+      newDictItem.label = '';
+      newDictItem.value = '';
+      onShowDictItem({ id: currentDictId.value } as SysDict);
+    })
+    .catch((err) => {
+      console.log('添加字典项失败', err);
+      MessagePlugin.error('添加字典项失败');
     });
-    MessagePlugin.success('添加字典项成功');
-    newDictItem.label = '';
-    newDictItem.value = '';
-    onShowDictItem({ id: currentDictId.value } as SysDict);
-  } catch (error) {
-    MessagePlugin.error('添加失败');
-  }
 }
 
 function editDictItem(record: SysDictItem) {
   MessagePlugin.info('请在弹窗中修改字典项');
 }
 
-async function deleteDictItem(record: SysDictItem) {
+function onDeleteDictItem(record: SysDictItem) {
   const confirmDia = DialogPlugin.confirm({
     header: '提示',
     body: '确定要删除此字典项吗？',
     cancelBtn: '取消',
     confirmBtn: '删除',
-    onConfirm: async () => {
-      try {
-        await deleteDictItem(record.id);
-        MessagePlugin.success('删除成功');
-        onShowDictItem({ id: currentDictId.value } as SysDict);
-      } catch (error) {
-        MessagePlugin.error('删除失败');
-      } finally {
-        confirmDia.destroy();
-      }
+    onConfirm: () => {
+      deleteDictItem(record.id)
+        .then(() => {
+          MessagePlugin.success('字典项删除成功');
+          onShowDictItem({ id: currentDictId.value } as SysDict);
+        })
+        .catch((err) => {
+          console.log('字典项删除失败', err);
+          MessagePlugin.error('字典项删除失败');
+        })
+        .finally(() => {
+          confirmDia.destroy();
+        });
     },
   });
 }

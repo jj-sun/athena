@@ -15,7 +15,7 @@
             <t-dropdown-menu>
               <t-dropdown-item value="1" @click="onBatchDelete">
                 批量删除
-                <template #icon>
+                <template #prefixIcon>
                   <delete-icon />
                 </template>
               </t-dropdown-item>
@@ -28,7 +28,7 @@
         :loading="tableLoading"
         :data="treeData"
         :columns="tableColumns"
-        :pagination="false"
+        :disable-data-page="true"
         :row-key="rowKey"
         :tree="treeConfig"
         @select-change="onSelectChange"
@@ -46,16 +46,11 @@
       </t-enhanced-table>
     </t-card>
 
-    <modal-dialog ref="modalDialog" :title="dialogTitle" @confirm="onSubmit">
+    <modal-dialog ref="modalDialogRef" :title="dialogTitle" @cancel="onCancel" @confirm="onSubmit">
       <template #content>
-        <t-form :model="departmentModel" :label-col="{ span: 6 }">
+        <t-form ref="formRef" :data="departmentModel" :rules="rules" :label-col="{ span: 6 }">
           <t-form-item label="上级部门" name="parentId">
-            <t-select v-model:value="departmentModel.parentId" placeholder="请选择上级部门">
-              <t-select-option value="0">无</t-select-option>
-              <t-select-option v-for="item of deptOptions" :key="item.id" :value="item.id">
-                {{ item.deptName }}
-              </t-select-option>
-            </t-select>
+            <dept-select v-model:value="departmentModel.parentId" :disabled="departmentModel.parentId === '0'" />
           </t-form-item>
           <t-form-item label="部门名称" name="deptName">
             <t-input v-model:value="departmentModel.deptName" placeholder="请输入部门名称" />
@@ -80,26 +75,28 @@
 </template>
 <script lang="ts" setup>
 import { DeleteIcon, MoreIcon, PlusIcon } from 'tdesign-icons-vue-next';
-import type { EnhancedTableProps } from 'tdesign-vue-next';
+import type { EnhancedTableProps, FormInstanceFunctions, FormProps } from 'tdesign-vue-next';
 import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
 import { onMounted, reactive, ref, useTemplateRef } from 'vue';
 
 import { deleteDept, deleteDeptBatch, getDeptInfo, getDeptList, saveDept, updateDept } from '@/api/system/dept';
+import DeptSelect from '@/components/dept/index.vue';
 import ModalDialog from '@/components/ModalDialog.vue';
 import TableHeader from '@/components/table/TableHeader.vue';
 import { useRowKey, useRowSelection, useTable, useTableColumn } from '@/hooks/table';
 import type { SysDept } from '@/types/system';
 
-const { tableLoading, dataList, indexColumn, handleSuccess } = useTable();
+const { tableLoading, indexColumn, handleSuccess } = useTable();
 const rowKey = useRowKey('id');
-const { selectedRowKeys, onSelectChange } = useRowSelection();
+const { selectedRowKeys, onSelectChange, onClearSelected } = useRowSelection();
 
 const treeData = ref([] as Array<SysDept>);
 const deptOptions = ref([] as Array<SysDept>);
 
-const modalDialog = useTemplateRef('modalDialog');
+const modalDialogRef = useTemplateRef('modalDialogRef');
 const dialogTitle = ref('');
 const isAdd = ref(true);
+const formRef = ref<FormInstanceFunctions>(null);
 
 const departmentModel = reactive<SysDept>({
   id: '',
@@ -109,6 +106,29 @@ const departmentModel = reactive<SysDept>({
   sortOrder: 1,
   description: '',
 });
+const rules: FormProps['rules'] = {
+  parentId: [
+    {
+      required: true,
+      message: '上级必须',
+      type: 'error',
+    },
+  ],
+  deptName: [
+    {
+      required: true,
+      message: '部门名称必填',
+      type: 'error',
+    },
+  ],
+  deptCode: [
+    {
+      required: true,
+      message: '部门编码必填',
+      type: 'error',
+    },
+  ],
+};
 
 const tableColumns = useTableColumn([
   ...indexColumn,
@@ -147,29 +167,21 @@ const treeConfig: EnhancedTableProps['tree'] = reactive({
   indent: 25,
   expandTreeNodeOnClick: true,
 });
-async function loadData() {
+function loadData() {
   tableLoading.value = true;
-  try {
-    const res = await getDeptList();
-    treeData.value = res;
-    deptOptions.value = flattenDept(res);
-    handleSuccess(res);
-  } catch (error) {
-    console.error('加载部门列表失败', error);
-  } finally {
-    tableLoading.value = false;
-  }
-}
-
-function flattenDept(depts: Array<SysDept>): Array<SysDept> {
-  const result: Array<SysDept> = [];
-  depts.forEach((dept) => {
-    result.push(dept);
-    if (dept.children) {
-      result.push(...flattenDept(dept.children));
-    }
-  });
-  return result;
+  getDeptList()
+    .then((res) => {
+      treeData.value = res;
+      deptOptions.value = res;
+      handleSuccess(res);
+    })
+    .catch((err) => {
+      console.error('加载部门列表失败', err);
+      MessagePlugin.error('加载部门列表失败');
+    })
+    .finally(() => {
+      tableLoading.value = false;
+    });
 }
 
 function hasChildren(item: SysDept): boolean {
@@ -187,54 +199,53 @@ function onAdd() {
     sortOrder: 1,
     description: '',
   });
-  modalDialog.value?.toggle();
+  modalDialogRef.value?.toggle();
 }
 
-async function onEdit(item: SysDept) {
+function onEdit(item: SysDept) {
   isAdd.value = false;
   dialogTitle.value = '编辑部门';
-  try {
-    const dept = await getDeptInfo(item.id);
-    Object.assign(departmentModel, {
-      id: dept.id,
-      parentId: dept.parentId,
-      deptName: dept.deptName,
-      deptCode: dept.deptCode,
-      sortOrder: dept.sortOrder || 1,
-      description: dept.description || '',
+  getDeptInfo(item.id)
+    .then((dept) => {
+      Object.assign(departmentModel, {
+        id: dept.id,
+        parentId: dept.parentId,
+        deptName: dept.deptName,
+        deptCode: dept.deptCode,
+        sortOrder: dept.sortOrder || 1,
+        description: dept.description || '',
+      });
+      modalDialogRef.value?.toggle();
+    })
+    .catch((err) => {
+      console.log('获取部门信息失败', err);
+      MessagePlugin.error('获取部门信息失败');
     });
-    modalDialog.value?.toggle();
-  } catch (error) {
-    MessagePlugin.error('获取部门信息失败');
-  }
 }
 
 async function onSubmit() {
-  if (!departmentModel.deptName) {
-    MessagePlugin.error('请输入部门名称');
-    return;
-  }
-  if (!departmentModel.deptCode) {
-    MessagePlugin.error('请输入部门编号');
-    return;
-  }
-
-  try {
-    if (isAdd.value) {
-      await saveDept(departmentModel);
-      MessagePlugin.success('新增部门成功');
-    } else {
-      await updateDept(departmentModel);
-      MessagePlugin.success('更新部门成功');
+  const validateResult = await formRef.value.validate();
+  if (validateResult === true) {
+    try {
+      if (isAdd.value) {
+        await saveDept(departmentModel);
+        await MessagePlugin.success('新增部门成功');
+      } else {
+        await updateDept(departmentModel);
+        await MessagePlugin.success('更新部门成功');
+      }
+      modalDialogRef.value?.close();
+      loadData();
+    } catch (err) {
+      console.log('部门操作失败', err);
+      await MessagePlugin.error('部门操作失败');
     }
-    modalDialog.value?.close();
-    loadData();
-  } catch (error: any) {
-    MessagePlugin.error(error?.response?.data?.msg || '操作失败');
   }
 }
-
-async function onDelete(item: SysDept) {
+function onCancel() {
+  formRef.value.clearValidate();
+}
+function onDelete(item: SysDept) {
   if (hasChildren(item)) {
     MessagePlugin.warning('当前部门下有子部门，不能删除');
     return;
@@ -244,21 +255,24 @@ async function onDelete(item: SysDept) {
     body: '确定要删除此部门吗？',
     cancelBtn: '取消',
     confirmBtn: '删除',
-    onConfirm: async () => {
-      try {
-        await deleteDept(item.id);
-        MessagePlugin.success('删除成功');
-        loadData();
-      } catch (error) {
-        MessagePlugin.error('删除失败');
-      } finally {
-        confirmDia.destroy();
-      }
+    onConfirm: () => {
+      deleteDept(item.id)
+        .then(() => {
+          MessagePlugin.success('部门删除成功');
+          loadData();
+        })
+        .catch((err) => {
+          console.log('部门删除失败', err);
+          MessagePlugin.error('部门删除失败');
+        })
+        .finally(() => {
+          confirmDia.destroy();
+        });
     },
   });
 }
 
-async function onBatchDelete() {
+function onBatchDelete() {
   if (selectedRowKeys.value.length === 0) {
     MessagePlugin.warning('请选择要删除的部门');
     return;
@@ -268,17 +282,20 @@ async function onBatchDelete() {
     body: `确定要删除选中的 ${selectedRowKeys.value.length} 个部门吗？`,
     cancelBtn: '取消',
     confirmBtn: '删除',
-    onConfirm: async () => {
-      try {
-        await deleteDeptBatch(selectedRowKeys.value);
-        MessagePlugin.success('批量删除成功');
-        loadData();
-        onSelectChange([]);
-      } catch (error) {
-        MessagePlugin.error('批量删除失败');
-      } finally {
-        confirmDia.destroy();
-      }
+    onConfirm: () => {
+      deleteDeptBatch(selectedRowKeys.value as string[])
+        .then(() => {
+          MessagePlugin.success('部门批量删除成功');
+          loadData();
+          onClearSelected();
+        })
+        .catch((err) => {
+          console.log('部门批量删除失败', err);
+          MessagePlugin.error('部门批量删除失败');
+        })
+        .finally(() => {
+          confirmDia.destroy();
+        });
     },
   });
 }

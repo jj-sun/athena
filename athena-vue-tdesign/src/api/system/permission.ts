@@ -1,5 +1,5 @@
-import { GET, POST, PUT, DELETE } from '@/utils/http';
-import type { SysPermission, Result } from '@/types/system';
+import type { SysPermission } from '@/types/system';
+import { DELETE, GET, POST, PUT } from '@/utils/http';
 
 const menuApi = {
   list: '/sys/permission/list',
@@ -9,22 +9,22 @@ const menuApi = {
   delete: '/sys/permission/delete',
 };
 
-export async function getMenuList(): Promise<Result<Array<SysPermission>>> {
+export function getMenuList() {
   return GET(menuApi.list);
 }
 
-export async function getMenuInfo(id: string): Promise<Result<SysPermission>> {
+export function getMenuInfo(id: string) {
   return GET(`${menuApi.info}/${id}`);
 }
 
-export async function saveMenu(data: SysPermission): Promise<Result<void>> {
+export function saveMenu(data: SysPermission) {
   return POST(menuApi.save, data);
 }
 
-export async function updateMenu(data: SysPermission): Promise<Result<void>> {
+export function updateMenu(data: SysPermission) {
   return PUT(menuApi.update, data);
 }
 
-export async function deleteMenu(id: string): Promise<Result<void>> {
+export function deleteMenu(id: string) {
   return DELETE(`${menuApi.delete}?id=${id}`);
 }

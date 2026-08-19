@@ -13,7 +13,7 @@
         :loading="tableLoading"
         :data="treeData"
         :columns="tableColumns"
-        :pagination="false"
+        :disable-data-page="true"
         :row-key="rowKey"
         :column-controller="columnControllerConfig"
         :tree="treeConfig"
@@ -22,6 +22,10 @@
           <t-tag v-if="row.type === 0" theme="success" size="small">目录</t-tag>
           <t-tag v-else-if="row.type === 1" theme="warning" size="small">菜单</t-tag>
           <t-tag v-else theme="danger" size="small">按钮</t-tag>
+        </template>
+        <template #frameBlank="{ row }">
+          <t-tag v-if="row.frameBlank === 0" theme="success" size="small">外链</t-tag>
+          <t-tag v-else-if="row.frameBlank === 1" theme="warning" size="small">内链</t-tag>
         </template>
         <template #icon="{ row }">
           <component :is="row.icon || 'MenuIcon'" style="font-size: 18px" />
@@ -42,14 +46,14 @@
       @confirm="onConfirm"
     >
       <template #content>
-        <t-form :model="formData" :label-col="{ span: 6 }">
-          <t-form-item label="上级菜单" name="parentId">
-            <t-select v-model:value="formData.parentId" placeholder="请选择上级菜单">
-              <t-select-option value="0">无</t-select-option>
-              <t-select-option v-for="item of menuOptions" :key="item.id" :value="item.id">
-                {{ item.name }}
-              </t-select-option>
-            </t-select>
+        <t-form :data="formData" :label-col="{ span: 6 }">
+          <t-form-item v-if="formData.type !== 0" label="上级菜单" name="parentId">
+            <t-tree-select
+              v-model:value="formData.parentId"
+              :data="menuOptions"
+              :keys="{ value: 'id', label: 'name' }"
+              placeholder="请选择上级菜单"
+            />
           </t-form-item>
           <t-form-item label="菜单名称" name="name">
             <t-input v-model:value="formData.name" placeholder="请输入菜单名称" />
@@ -64,8 +68,20 @@
           <t-form-item v-if="formData.type === 1 || formData.type === 0" label="菜单URL" name="url">
             <t-input v-model:value="formData.url" placeholder="请输入菜单URL" />
           </t-form-item>
+          <t-form-item v-if="formData.type === 0" label="一级菜单跳转地址" name="redirect">
+            <t-input v-model:value="formData.redirect" placeholder="请输入一级菜单跳转地址" />
+          </t-form-item>
           <t-form-item v-if="formData.type === 1" label="组件路径" name="component">
             <t-input v-model:value="formData.component" placeholder="请输入组件路径" />
+          </t-form-item>
+          <t-form-item v-if="formData.type === 1" label="外部链接" name="frameSrc">
+            <t-input v-model:value="formData.frameSrc" placeholder="请输入外部链接" />
+          </t-form-item>
+          <t-form-item v-if="formData.type === 1" label="内外链" name="frameBlank">
+            <t-select v-model:value="formData.frameBlank">
+              <t-option :key="0" label="外链" :value="0" />
+              <t-option :key="1" label="内链" :value="1" />
+            </t-select>
           </t-form-item>
           <t-form-item v-if="formData.type === 2" label="权限标识" name="perms">
             <t-input v-model:value="formData.perms" placeholder="请输入权限标识" />
@@ -93,7 +109,7 @@ import TableHeader from '@/components/table/TableHeader.vue';
 import { useColumnControllerConfig, useRowKey, useTable, useTableColumn } from '@/hooks/table';
 import type { SysPermission } from '@/types/system';
 
-const { tableLoading, dataList, indexColumn, handleSuccess } = useTable();
+const { tableLoading, indexColumn, handleSuccess } = useTable();
 const rowKey = useRowKey('id');
 
 const actionModel = ref<'add' | 'edit'>('add');
@@ -108,8 +124,11 @@ const formData = reactive<SysPermission>({
   name: '',
   url: '',
   component: '',
+  frameSrc: '',
+  frameBlank: null,
+  redirect: '',
   perms: '',
-  type: 1,
+  type: 0,
   icon: '',
   orderNum: 0,
 });
@@ -132,6 +151,18 @@ const tableColumns = useTableColumn(
     {
       title: '组件路径',
       colKey: 'component',
+    },
+    {
+      title: '外部链接',
+      colKey: 'frameSrc',
+    },
+    {
+      title: '内外链',
+      colKey: 'frameBlank',
+    },
+    {
+      title: '一级菜单跳转地址',
+      colKey: 'redirect',
     },
     {
       title: '权限标识',
@@ -160,18 +191,21 @@ const treeConfig: EnhancedTableProps['tree'] = reactive({
   indent: 25,
   expandTreeNodeOnClick: true,
 });
-async function loadData() {
+function loadData() {
   tableLoading.value = true;
-  try {
-    const res = await getMenuList();
-    treeData.value = res;
-    menuOptions.value = flattenMenu(res);
-    handleSuccess(res);
-  } catch (error) {
-    console.error('加载菜单列表失败', error);
-  } finally {
-    tableLoading.value = false;
-  }
+  getMenuList()
+    .then((res) => {
+      treeData.value = res;
+      menuOptions.value = flattenMenu(res);
+      handleSuccess(res);
+    })
+    .catch((err) => {
+      console.error('加载菜单列表失败', err);
+      MessagePlugin.error('加载菜单列表失败');
+    })
+    .finally(() => {
+      tableLoading.value = false;
+    });
 }
 
 function flattenMenu(menus: Array<SysPermission>): Array<SysPermission> {
@@ -193,37 +227,45 @@ function onAdd() {
   actionModel.value = 'add';
   Object.assign(formData, {
     id: '',
-    parentId: '0',
+    parentId: '', // 默认为 0，如果不是一级菜单，则需要选择
     name: '',
     url: '',
     component: '',
+    frameSrc: '',
+    frameBlank: null,
+    redirect: '',
     perms: '',
-    type: 1,
+    type: 0,
     icon: '',
     orderNum: 0,
   });
   modalDialog.value?.show();
 }
 
-async function onEdit(item: SysPermission) {
+function onEdit(item: SysPermission) {
   actionModel.value = 'edit';
-  try {
-    const menu = await getMenuInfo(item.id);
-    Object.assign(formData, {
-      id: menu.id,
-      parentId: menu.parentId || '0',
-      name: menu.name,
-      url: menu.url || '',
-      component: menu.component || '',
-      perms: menu.perms || '',
-      type: menu.type || 1,
-      icon: menu.icon || '',
-      orderNum: menu.orderNum || 0,
+  getMenuInfo(item.id)
+    .then((menu) => {
+      Object.assign(formData, {
+        id: menu.id,
+        parentId: menu.parentId || '0',
+        name: menu.name,
+        url: menu.url || '',
+        component: menu.component || '',
+        frameSrc: menu.frameSrc || '',
+        frameBlank: menu.frameBlank || null,
+        redirect: menu.redirect || '',
+        perms: menu.perms || '',
+        type: menu.type,
+        icon: menu.icon || '',
+        orderNum: menu.orderNum,
+      });
+      modalDialog.value?.show();
+    })
+    .catch((err) => {
+      console.log(err);
+      MessagePlugin.error('获取菜单信息失败');
     });
-    modalDialog.value?.show();
-  } catch (error) {
-    MessagePlugin.error('获取菜单信息失败');
-  }
 }
 
 function onTypeChange() {
@@ -237,36 +279,36 @@ function onTypeChange() {
 
 async function onConfirm() {
   if (!formData.name) {
-    MessagePlugin.error('请输入菜单名称');
+    void MessagePlugin.error('请输入菜单名称');
     return;
   }
   if (formData.type === 0 || formData.type === 1) {
     if (!formData.url) {
-      MessagePlugin.error('请输入菜单URL');
+      void MessagePlugin.error('请输入菜单URL');
       return;
     }
   }
   if (formData.type === 2 && !formData.perms) {
-    MessagePlugin.error('请输入权限标识');
+    void MessagePlugin.error('请输入权限标识');
     return;
   }
 
   try {
     if (actionModel.value === 'add') {
       await saveMenu(formData);
-      MessagePlugin.success('新增菜单成功');
+      void MessagePlugin.success('新增菜单成功');
     } else {
       await updateMenu(formData);
-      MessagePlugin.success('更新菜单成功');
+      void MessagePlugin.success('更新菜单成功');
     }
     modalDialog.value?.close();
     loadData();
   } catch (error: any) {
-    MessagePlugin.error(error?.response?.data?.msg || '操作失败');
+    void MessagePlugin.error(error?.response?.data?.msg || '操作失败');
   }
 }
 
-async function onDelete(item: SysPermission) {
+function onDelete(item: SysPermission) {
   if (hasChildren(item)) {
     MessagePlugin.warning('请先删除子菜单或按钮');
     return;
@@ -276,16 +318,19 @@ async function onDelete(item: SysPermission) {
     body: '是否要删除此数据？',
     confirmBtn: '删除',
     cancelBtn: '取消',
-    onConfirm: async () => {
-      try {
-        await deleteMenu(item.id);
-        MessagePlugin.success('删除成功');
-        loadData();
-      } catch (error: any) {
-        MessagePlugin.error(error?.response?.data?.msg || '删除失败');
-      } finally {
-        confirmDia.destroy();
-      }
+    onConfirm: () => {
+      deleteMenu(item.id)
+        .then(() => {
+          MessagePlugin.success('删除成功');
+          loadData();
+        })
+        .catch((err) => {
+          console.log(err);
+          MessagePlugin.error('删除失败');
+        })
+        .finally(() => {
+          confirmDia.destroy();
+        });
     },
   });
 }
