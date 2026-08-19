@@ -2,15 +2,18 @@ package com.athena.permission;
 
 import cn.dev33.satoken.secure.BCrypt;
 import cn.dev33.satoken.secure.SaSecureUtil;
+import com.athena.modules.sys.entity.SysUser;
 import com.athena.modules.sys.service.SysUserService;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ActiveProfiles;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+import java.util.List;
+
+@ActiveProfiles("dev")
+@SpringBootTest
 public class SysUserTest {
 
 
@@ -23,6 +26,12 @@ public class SysUserTest {
         //sha256加密
         String newPassword = BCrypt.hashpw(md5, BCrypt.gensalt());
         userService.updatePassword("admin", newPassword);
+    }
+
+    @Test
+    public void testGetUserList() {
+        List<SysUser> list = userService.list();
+        System.err.println(list.toString());
     }
 
 }
