@@ -172,6 +172,7 @@ import {
   removeUserFromRole,
   saveRole,
   updateRole,
+  saveRolePerms,
 } from '@/api/system/role';
 import { getUserList } from '@/api/system/user';
 import ModalDialog from '@/components/ModalDialog.vue';
@@ -417,11 +418,12 @@ async function onBatchDelete() {
   });
 }
 
-async function onShowMenu(item: SysRole) {
+async function onShowMenu(row: SysRole) {
+  currentRole.value = row;
   try {
-    console.log(item);
+    console.log(row);
     menuTreeData.value = await getMenuList();
-    defaultCheckedKeys.value = await getPermissionIdList(item.id);
+    defaultCheckedKeys.value = await getPermissionIdList(row.id);
     defaultExpandedKeys.value = defaultCheckedKeys.value;
     menuModalDialogRef.value?.toggle();
   } catch (error) {
@@ -430,8 +432,22 @@ async function onShowMenu(item: SysRole) {
 }
 
 function onMenuConfirm() {
-  menuModalDialogRef.value?.close();
-  MessagePlugin.success(`权限设置成功，选中的权限ID：${JSON.stringify(defaultCheckedKeys.value)}`);
+  if (!currentRole.value) return;
+  if (defaultCheckedKeys.value.length === 0) {
+    void MessagePlugin.warning('请选择要添加的权限');
+    return;
+  }
+  saveRolePerms({ roleId: currentRole.value.id, permissionIdList: defaultCheckedKeys.value as string[] })
+    .then(() => {
+      MessagePlugin.success(`权限设置成功`);
+    })
+    .catch((err) => {
+      console.log(err);
+      MessagePlugin.error('权限设置失败');
+    })
+    .finally(() => {
+      menuModalDialogRef.value?.close();
+    });
 }
 
 function onUpdateTable(newColumns: Array<TablePropsType>) {

@@ -3,6 +3,7 @@ package com.athena.modules.sys.controller;
 import com.athena.common.utils.Result;
 import com.athena.modules.sys.dto.SysRolePermissionDto;
 import com.athena.modules.sys.service.SysRolePermissionService;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +23,8 @@ public class SysRolePermissionController {
 
     @PostMapping(value = "saveBatch")
     public Result<Object> saveBatch(@RequestBody SysRolePermissionDto rolePermissionDto) {
+        List<String> roleIds = Lists.newArrayList(rolePermissionDto.getRoleId());
+        rolePermissionService.deleteBatch(roleIds);
         rolePermissionService.saveOrUpdate(rolePermissionDto.getRoleId(), rolePermissionDto.getPermissionIdList());
         return Result.ok();
     }

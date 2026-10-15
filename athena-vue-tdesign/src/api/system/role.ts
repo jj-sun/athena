@@ -9,9 +9,11 @@ const roleApi = {
   update: '/sys/role/update',
   delete: '/sys/role/delete',
   deleteBatch: '/sys/role/deleteBatch',
-
+  // 角色和菜单权限URL
   getPermissionIdList: '/sys/rolePermission/getPermissionIdList',
+  saveRolePerms: '/sys/rolePermission/saveBatch',
 
+  // 角色和用户URL
   listUsers: '/sys/role/listUsers',
   addUser: '/sys/role/addUser',
   removeUser: '/sys/role/removeUser',
@@ -58,4 +60,8 @@ export function addUserToRole(data: { roleId: string; userIdList: string[] }) {
 
 export function removeUserFromRole(roleId: string, userId: string) {
   return DELETE(`${roleApi.removeUser}?roleId=${roleId}&userId=${userId}`);
+}
+
+export function saveRolePerms(data: { roleId: string; permissionIdList: string[] }) {
+  return POST(roleApi.saveRolePerms, data);
 }

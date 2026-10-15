@@ -40,7 +40,7 @@
     </t-card>
 
     <modal-dialog
-      ref="modalDialog"
+      ref="modalDialogRef"
       :title="actionModel === 'add' ? '添加菜单' : '编辑菜单'"
       content-height="50vh"
       @confirm="onConfirm"
@@ -71,7 +71,7 @@
           <t-form-item v-if="formData.type === 0" label="一级菜单跳转地址" name="redirect">
             <t-input v-model:value="formData.redirect" placeholder="请输入一级菜单跳转地址" />
           </t-form-item>
-          <t-form-item v-if="formData.type === 1" label="组件路径" name="component">
+          <t-form-item v-if="formData.type === 0 || formData.type === 1" label="组件路径" name="component">
             <t-input v-model:value="formData.component" placeholder="请输入组件路径" />
           </t-form-item>
           <t-form-item v-if="formData.type === 1" label="外部链接" name="frameSrc">
@@ -113,7 +113,7 @@ const { tableLoading, indexColumn, handleSuccess } = useTable();
 const rowKey = useRowKey('id');
 
 const actionModel = ref<'add' | 'edit'>('add');
-const modalDialog = useTemplateRef('modalDialog');
+const modalDialogRef = useTemplateRef('modalDialogRef');
 const treeData = ref([] as Array<SysPermission>);
 const menuOptions = ref([] as Array<SysPermission>);
 const { columnControllerConfig } = useColumnControllerConfig({});
@@ -196,7 +196,7 @@ function loadData() {
   getMenuList()
     .then((res) => {
       treeData.value = res;
-      menuOptions.value = flattenMenu(res);
+      menuOptions.value = res;
       handleSuccess(res);
     })
     .catch((err) => {
@@ -206,17 +206,6 @@ function loadData() {
     .finally(() => {
       tableLoading.value = false;
     });
-}
-
-function flattenMenu(menus: Array<SysPermission>): Array<SysPermission> {
-  const result: Array<SysPermission> = [];
-  menus.forEach((menu) => {
-    result.push(menu);
-    if (menu.children) {
-      result.push(...flattenMenu(menu.children));
-    }
-  });
-  return result;
 }
 
 function hasChildren(item: SysPermission): boolean {
@@ -239,7 +228,7 @@ function onAdd() {
     icon: '',
     orderNum: 0,
   });
-  modalDialog.value?.show();
+  modalDialogRef.value?.show();
 }
 
 function onEdit(item: SysPermission) {
@@ -260,7 +249,7 @@ function onEdit(item: SysPermission) {
         icon: menu.icon || '',
         orderNum: menu.orderNum,
       });
-      modalDialog.value?.show();
+      modalDialogRef.value?.show();
     })
     .catch((err) => {
       console.log(err);
@@ -301,7 +290,7 @@ async function onConfirm() {
       await updateMenu(formData);
       void MessagePlugin.success('更新菜单成功');
     }
-    modalDialog.value?.close();
+    modalDialogRef.value?.close();
     loadData();
   } catch (error: any) {
     void MessagePlugin.error(error?.response?.data?.msg || '操作失败');
