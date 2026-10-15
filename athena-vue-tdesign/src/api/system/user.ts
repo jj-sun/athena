@@ -1,4 +1,5 @@
 import type { SysUser } from '@/types/system';
+import { rsaEncrypt } from '@/utils/crypto';
 import { DELETE, GET, POST, PUT } from '@/utils/http';
 
 const userApi = {
@@ -43,5 +44,12 @@ export function deleteUserBatch(ids: Array<string>) {
 }
 
 export function resetUserPassword(id: string, password: string) {
-  return POST(userApi.resetPassword, { id, password });
+  return POST(userApi.resetPassword, { id, password: rsaEncrypt(password) });
+}
+
+export function changePassword(oldPassword: string, newPassword: string) {
+  return POST('/sys/user/password', {
+    password: rsaEncrypt(oldPassword),
+    newPassword: rsaEncrypt(newPassword),
+  });
 }

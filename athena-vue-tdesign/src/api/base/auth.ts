@@ -1,9 +1,10 @@
 import { POST } from '@/utils/http';
+import { rsaEncrypt } from '@/utils/crypto';
 
 export function login(username: string, password: string) {
   const data = {
-    username,
-    password,
+    username: rsaEncrypt(username),
+    password: rsaEncrypt(password),
   };
   return POST('/login', data);
 }

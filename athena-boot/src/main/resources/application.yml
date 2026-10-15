@@ -6,7 +6,11 @@ spring:
     active: dev
 sa-token:
   token-name: X-Access-Token
+  # 登录超时单位：秒
   timeout: 1800
   is-share: false
   is-read-cookie: false
-  token-style: random-128
+  jwt-secret-key: sdnyjtlxkykjxxgs
+athena:
+  rsa:
+    private-key: "MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBALeYtWyP3FEhheORbdnRo+zAT74Mc9vfCZwaHWwBbHIFyvsCmZ2C1yjaINqIayUkw8lDFOccLZzV7qtvLIytSD3gWYnBAzTBckkCYfoBQofucvG98ei60hXdPsEoQwkYNP3Oyf3VJY9qojzk+xC9are0fOfgAoGHh30BQ4hHDEfjAgMBAAECgYAGNk8RNM7uGdXHbPDMGXlT9e/czNwQuPvAwetz75plQ0fqdVyQRVCVa8gHzOzfLV7IjRIEfeIXN+/i8hiOTACxNIA7S9uFpSn19GNYB75hGJn14Mz6XVHCtuANoNEnGMIPkQwV0pc+QXD+m6BO6n1+jpeBD9arURTfyScoatc61QJBAPXDrv3Fv34F9bwhyGyqGjftTw4k3v/ae318WJxgxnhnzuq4mKyCzEZMETeCpYZEFznZ7y/GLvs9zZEnpgt/EJUCQQC/PjJ9pcM5p+Giza5sqWrjBQgiDPnDugJRH+swEoa/TMU+9q9BGkQSs8qENVcX7utHFU1ivsH7RDeLedkc04CXAkB1o0c9/cvdfOjVNq6DJSELqDHxKUD84w29USnxIHmf5MCspdOer7Ur6PlMwuKMVEdxz5moGoseg8TEOGBInHfJAkBsYL8UXaApSG6iaJV0lv4v8WYOhfP1a7BscP5Dm/wo5UTSzdG7vzrcrm8SRXg54/gJrJTSZPBhiONBc6gKogG5AkEAgk6cSrQQ2M2AE+7q19I5r6K3Tt120IVPikDdkBM4IR0Bamw/EGUNWP0FzmRN2Q71N2/YSNG4fmt1gEBPDAmi4A=="

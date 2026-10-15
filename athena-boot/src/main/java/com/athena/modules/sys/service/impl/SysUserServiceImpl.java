@@ -3,7 +3,9 @@ package com.athena.modules.sys.service.impl;
 import cn.dev33.satoken.secure.BCrypt;
 import cn.dev33.satoken.secure.SaSecureUtil;
 import com.athena.common.base.dto.PageDto;
+import com.athena.common.exception.RRException;
 import com.athena.common.utils.PageUtils;
+import com.athena.common.utils.PasswordUtils;
 import com.athena.common.utils.Query;
 import com.athena.modules.sys.entity.SysUser;
 import com.athena.modules.sys.entity.SysUserRole;
@@ -76,6 +78,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 			String md5 = SaSecureUtil.md5(user.getUsername() + ":123456");
 			user.setPassword(BCrypt.hashpw(md5, BCrypt.gensalt()));
 		} else {
+			// 密码复杂度校验
+			if(!PasswordUtils.isComplex(user.getPassword())) {
+				throw new RRException("密码需包含大写、小写、数字和特殊字符，且不少于8位");
+			}
 			String md5 = SaSecureUtil.md5(user.getUsername() + ":" + user.getPassword());
 			user.setPassword(BCrypt.hashpw(md5, BCrypt.gensalt()));
 		}

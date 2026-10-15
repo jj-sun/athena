@@ -10,12 +10,26 @@ import cn.dev33.satoken.stp.StpUtil;
 public class SecurityUtil {
 
     public static String getUserId() {
-        //return ((LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUser();
-        return StpUtil.getExtra("id").toString();
+        try {
+            if (!StpUtil.isLogin()) {
+                return "";
+            }
+            Object id = StpUtil.getExtra("id");
+            return id == null ? "" : id.toString();
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     public static String getLoginUsername() {
-        return StpUtil.getLoginIdAsString();
+        try {
+            if (!StpUtil.isLogin()) {
+                return "";
+            }
+            return StpUtil.getLoginIdAsString();
+        } catch (Exception e) {
+            return "";
+        }
     }
 
 }

@@ -130,11 +130,11 @@
 			<version>${sa-token.version}</version>
 		</dependency>
 		<!-- Sa-Token 整合 jwt -->
-		<!--<dependency>
+		<dependency>
 			<groupId>cn.dev33</groupId>
 			<artifactId>sa-token-jwt</artifactId>
 			<version>${sa-token.version}</version>
-		</dependency>-->
+		</dependency>
 
 		<dependency>
 			<groupId>com.baomidou</groupId>

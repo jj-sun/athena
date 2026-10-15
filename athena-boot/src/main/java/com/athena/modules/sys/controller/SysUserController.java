@@ -6,6 +6,7 @@ import cn.dev33.satoken.secure.SaSecureUtil;
 import com.athena.common.annotation.Log;
 import com.athena.common.base.dto.PageDto;
 import com.athena.common.utils.PageUtils;
+import com.athena.common.utils.PasswordUtils;
 import com.athena.common.utils.Result;
 import com.athena.common.validator.Assert;
 import com.athena.common.validator.ValidatorUtils;
@@ -16,6 +17,7 @@ import com.athena.modules.sys.form.PasswordForm;
 import com.athena.modules.sys.service.SysUserRoleService;
 import com.athena.modules.sys.service.SysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -34,6 +36,9 @@ public class SysUserController extends AbstractController {
 	private SysUserService sysUserService;
 	@Autowired
 	private SysUserRoleService sysUserRoleService;
+
+	@Value("${athena.rsa.private-key}")
+	private String rsaPrivateKey;
 
 
 	/**
@@ -61,18 +66,44 @@ public class SysUserController extends AbstractController {
 	@Log("修改密码")
 	@PostMapping("/password")
 	public Result<Object> password(@RequestBody PasswordForm form){
-		Assert.isBlank(form.getNewPassword(), "新密码不为能空");
-		String md5 = SaSecureUtil.md5(form.getUsername() + ":" + form.getNewPassword());
+		Assert.isBlank(form.getPassword(), "原密码不能为空");
+		Assert.isBlank(form.getNewPassword(), "新密码不能为空");
 
-		//sha256加密
-		String newPassword = BCrypt.hashpw(md5, BCrypt.gensalt());
+		String oldPassword;
+		String newPassword;
+		try {
+			// 前端 RSA 公钥加密，此处私钥解密
+			oldPassword = SaSecureUtil.rsaDecryptByPrivate(rsaPrivateKey, form.getPassword());
+			newPassword = SaSecureUtil.rsaDecryptByPrivate(rsaPrivateKey, form.getNewPassword());
+		} catch (Exception e) {
+			return Result.error("密码格式错误！");
+		}
 
-		//更新密码
-		boolean flag = sysUserService.updatePassword(getUsername(), newPassword);
-		if(!flag){
+		// 新密码复杂度校验
+		if(!PasswordUtils.isComplex(newPassword)){
+			return Result.error("新密码需包含大写、小写、数字和特殊字符，且不少于8位");
+		}
+
+		String username = getUsername();
+		SysUser user = sysUserService.queryByUserName(username);
+		if(user == null){
+			return Result.error("用户不存在");
+		}
+
+		// 校验原密码
+		String oldMd5 = SaSecureUtil.md5(username + ":" + oldPassword);
+		if(!BCrypt.checkpw(oldMd5, user.getPassword())){
 			return Result.error("原密码不正确");
 		}
-		
+
+		//sha256加密并更新密码
+		String newMd5 = SaSecureUtil.md5(username + ":" + newPassword);
+		String encodedPassword = BCrypt.hashpw(newMd5, BCrypt.gensalt());
+		boolean flag = sysUserService.updatePassword(username, encodedPassword);
+		if(!flag){
+			return Result.error("修改密码失败");
+		}
+
 		return Result.ok();
 	}
 
@@ -88,7 +119,20 @@ public class SysUserController extends AbstractController {
 		Assert.isBlank(id, "用户ID不能为空");
 		Assert.isBlank(password, "新密码不能为空");
 
-		boolean flag = sysUserService.resetPassword(id, password);
+		String plainPassword;
+		try {
+			// 前端 RSA 公钥加密，此处私钥解密
+			plainPassword = SaSecureUtil.rsaDecryptByPrivate(rsaPrivateKey, password);
+		} catch (Exception e) {
+			return Result.error("新密码格式错误！");
+		}
+
+		// 新密码复杂度校验
+		if(!PasswordUtils.isComplex(plainPassword)){
+			return Result.error("新密码需包含大写、小写、数字和特殊字符，且不少于8位");
+		}
+
+		boolean flag = sysUserService.resetPassword(id, plainPassword);
 		if(!flag){
 			return Result.error("重置密码失败");
 		}

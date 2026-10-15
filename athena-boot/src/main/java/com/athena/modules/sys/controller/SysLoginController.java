@@ -5,6 +5,7 @@ import cn.dev33.satoken.secure.SaSecureUtil;
 import cn.dev33.satoken.stp.SaLoginConfig;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.dev33.satoken.stp.parameter.SaLoginParameter;
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.LineCaptcha;
 import cn.hutool.core.bean.BeanUtil;
@@ -26,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -54,6 +56,9 @@ public class SysLoginController {
 	@Resource
 	private RedisUtils redisUtils;
 
+	@Value("${athena.rsa.private-key}")
+	private String rsaPrivateKey;
+
 	@PostMapping(value = "/login")
 	public Result<?> login(@RequestBody SysLoginForm loginForm) {
 		//首先校验验证码
@@ -71,6 +76,14 @@ public class SysLoginController {
 
 		boolean loginStatus = false;
 		String username = loginForm.getUsername();
+		String password = loginForm.getPassword();
+		try {
+			// 登录信息前端 RSA 公钥加密，此处用私钥解密
+			username = SaSecureUtil.rsaDecryptByPrivate(rsaPrivateKey, username);
+			password = SaSecureUtil.rsaDecryptByPrivate(rsaPrivateKey, password);
+		} catch (Exception e) {
+			return Result.error("用户名或密码错误！");
+		}
 		if(StringUtils.isBlank(username)) {
 			return Result.error("用户名必填！");
 		}
@@ -78,7 +91,7 @@ public class SysLoginController {
 		if(Objects.isNull(user)) {
 			return Result.error("信息有误！");
 		}
-		String md5 = SaSecureUtil.md5(loginForm.getUsername() + ":" + loginForm.getPassword());
+		String md5 = SaSecureUtil.md5(username + ":" + password);
 		loginStatus = BCrypt.checkpw(md5, user.getPassword());
 		//redisUtils.delete(key);
 		//TODO 登录日志

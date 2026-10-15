@@ -205,6 +205,7 @@ import {
 import type { TablePropsType } from '@/types/components';
 import type { SysRole, SysUser } from '@/types/system';
 import { sortColumns } from '@/utils';
+import { passwordValidator } from '@/utils/validate';
 
 const { tableLoading, dataList, tableHeight, indexColumn, handleSuccess } = useTable();
 const rowKey = useRowKey('id');
@@ -264,6 +265,10 @@ const rules: FormProps['rules'] = {
       required: true,
       message: '密码必填',
       type: 'error',
+    },
+    {
+      validator: passwordValidator,
+      trigger: 'blur',
     },
   ],
   deptCode: [
@@ -538,8 +543,9 @@ function onSubmitPassword() {
     void MessagePlugin.error('请输入新密码');
     return false;
   }
-  if (passwordForm.password.length < 6) {
-    void MessagePlugin.error('密码长度不能少于6位');
+  const pwdValidate = passwordValidator(passwordForm.password);
+  if (pwdValidate !== true) {
+    void MessagePlugin.error(pwdValidate.message);
     return false;
   }
   if (passwordForm.password !== passwordForm.confirmPassword) {
