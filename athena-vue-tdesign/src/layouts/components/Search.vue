@@ -3,7 +3,7 @@
     <t-input
       class="header-search"
       :class="[{ 'hover-active': isSearchFocus }]"
-      :placeholder="t('layout.searchPlaceholder')"
+      placeholder="请输入搜索内容"
       @blur="changeSearchFocus(false)"
       @focus="changeSearchFocus(true)"
     >
@@ -39,8 +39,6 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue';
-
-import { t } from '@/locales';
 
 defineProps({
   layout: {

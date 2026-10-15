@@ -23,32 +23,21 @@
           <!-- 全局通知 -->
           <notice />
 
-          <t-tooltip placement="bottom" :content="t('layout.header.code')">
+          <t-tooltip placement="bottom" content="代码仓库">
             <t-button theme="default" shape="square" variant="text" @click="navToGitHub">
               <t-icon name="logo-github" />
             </t-button>
           </t-tooltip>
-          <t-dropdown trigger="click">
-            <t-button theme="default" shape="square" variant="text">
-              <translate-icon />
-            </t-button>
-            <t-dropdown>
-              <t-dropdown-item
-                v-for="(lang, index) in langList"
-                :key="index"
-                :value="lang.value"
-                @click="(options) => changeLang(options.value as string)"
-                >{{ lang.content }}</t-dropdown-item
-              ></t-dropdown
-            >
-          </t-dropdown>
           <t-dropdown :min-column-width="120" trigger="click">
             <template #dropdown>
               <t-dropdown-item class="operations-dropdown-container-item" @click="handleNav('/user/index')">
-                <user-circle-icon />{{ t('layout.header.user') }}
+                <user-circle-icon />个人中心
+              </t-dropdown-item>
+              <t-dropdown-item class="operations-dropdown-container-item" @click="changePwdVisible = true">
+                <lock-on-icon />修改密码
               </t-dropdown-item>
               <t-dropdown-item class="operations-dropdown-container-item" @click="handleLogout">
-                <poweroff-icon />{{ t('layout.header.signOut') }}
+                <poweroff-icon />退出登录
               </t-dropdown-item>
             </template>
             <t-button class="header-user-btn" theme="default" variant="text">
@@ -59,7 +48,7 @@
               <template #suffix><chevron-down-icon /></template>
             </t-button>
           </t-dropdown>
-          <t-tooltip placement="bottom" :content="t('layout.header.setting')">
+          <t-tooltip placement="bottom" content="系统设置">
             <t-button theme="default" shape="square" variant="text" @click="toggleSettingPanel">
               <setting-icon />
             </t-button>
@@ -67,18 +56,19 @@
         </div>
       </template>
     </t-head-menu>
+    <change-password v-model:visible="changePwdVisible" />
   </div>
 </template>
 <script setup lang="ts">
-import { ChevronDownIcon, PoweroffIcon, SettingIcon, TranslateIcon, UserCircleIcon } from 'tdesign-icons-vue-next';
+import NProgress from 'nprogress';
+import { ChevronDownIcon, LockOnIcon, PoweroffIcon, SettingIcon, UserCircleIcon } from 'tdesign-icons-vue-next';
 import type { PropType } from 'vue';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import LogoFull from '@/assets/assets-logo-full.svg?component';
+import ChangePassword from '@/components/change-password/index.vue';
 import { prefix } from '@/config/global';
-import { langList, t } from '@/locales';
-import { useLocale } from '@/locales/useLocale';
 import { getActive } from '@/router';
 import { useSettingStore, useUserStore } from '@/store';
 import type { MenuRoute, ModeType } from '@/types/interface';
@@ -86,7 +76,6 @@ import type { MenuRoute, ModeType } from '@/types/interface';
 import MenuContent from './MenuContent.vue';
 import Notice from './Notice.vue';
 import Search from './Search.vue';
-import NProgress from 'nprogress';
 
 const { theme, layout, showLogo, menu, isFixed, isCompact } = defineProps({
   theme: {
@@ -123,6 +112,8 @@ const router = useRouter();
 const settingStore = useSettingStore();
 const user = useUserStore();
 
+const changePwdVisible = ref(false);
+
 const toggleSettingPanel = () => {
   settingStore.updateConfig({
     showSettingPanel: true,
@@ -144,12 +135,6 @@ const menuCls = computed(() => {
   ];
 });
 const menuTheme = computed(() => theme as ModeType);
-
-// 切换语言
-const { changeLocale } = useLocale();
-const changeLang = (lang: string) => {
-  changeLocale(lang);
-};
 
 const changeCollapsed = () => {
   settingStore.updateConfig({
@@ -174,7 +159,6 @@ const handleLogout = () => {
 const navToGitHub = () => {
   window.open('https://github.com/tencent/tdesign-vue-next-starter');
 };
-
 </script>
 <style lang="less" scoped>
 .@{starter-prefix}-header {

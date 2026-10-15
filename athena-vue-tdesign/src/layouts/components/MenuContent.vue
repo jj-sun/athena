@@ -28,7 +28,6 @@
 import type { PropType } from 'vue';
 import { computed } from 'vue';
 
-import { useLocale } from '@/locales/useLocale';
 import { getActive } from '@/router';
 import type { MenuRoute } from '@/types/interface';
 
@@ -43,7 +42,6 @@ const { navData } = defineProps({
 
 const active = computed(() => getActive());
 
-const { locale } = useLocale();
 const list = computed(() => {
   return getMenuList(navData);
 });
@@ -54,10 +52,7 @@ const menuIcon = (item: ListItemType) => {
   return RenderIcon;
 };
 
-const renderMenuTitle = (title: string | Record<string, string>) => {
-  if (typeof title === 'string') return title;
-  return title[locale.value];
-};
+const renderMenuTitle = (title: string) => title;
 
 const getMenuList = (list: MenuRoute[], basePath?: string): ListItemType[] => {
   if (!list || list.length === 0) {

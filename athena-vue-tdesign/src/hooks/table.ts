@@ -78,7 +78,7 @@ export const useRowSelection = function () {
     console.log(ctx);
   };
   const onClearSelected = () => {
-    selectedRowKeys.value = []
+    selectedRowKeys.value = [];
   };
   return {
     selectedRowKeys,

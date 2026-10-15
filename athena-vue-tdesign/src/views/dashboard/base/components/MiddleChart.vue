@@ -1,12 +1,7 @@
 <template>
   <t-row :gutter="16" class="row-container">
     <t-col :xs="12" :xl="9">
-      <t-card
-        :title="t('pages.dashboardBase.topPanel.analysis.title')"
-        :subtitle="currentMonth"
-        class="dashboard-chart-card"
-        :bordered="false"
-      >
+      <t-card title="统计数据" :subtitle="currentMonth" class="dashboard-chart-card" :bordered="false">
         <template #actions>
           <div class="dashboard-chart-title-container">
             <t-date-range-picker
@@ -26,12 +21,7 @@
       </t-card>
     </t-col>
     <t-col :xs="12" :xl="3">
-      <t-card
-        :title="t('pages.dashboardBase.topPanel.analysis.channels')"
-        :subtitle="currentMonth"
-        class="dashboard-chart-card"
-        :bordered="false"
-      >
+      <t-card title="销售渠道" :subtitle="currentMonth" class="dashboard-chart-card" :bordered="false">
         <div
           id="countContainer"
           class="dashboard-chart-container"
@@ -49,7 +39,6 @@ import * as echarts from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
 import { computed, nextTick, onDeactivated, onMounted, ref, watch } from 'vue';
 
-import { t } from '@/locales';
 import { useSettingStore } from '@/store';
 import { changeChartsTheme } from '@/utils/color';
 import { LAST_7_DAYS } from '@/utils/date';

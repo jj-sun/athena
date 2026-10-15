@@ -2,7 +2,7 @@ export default {
   showFooter: true,
   isSidebarCompact: false,
   showBreadcrumb: false,
-  menuAutoCollapsed: false,
+  menuAutoCollapsed: true,
   mode: 'light',
   layout: 'side',
   splitMenu: false,
@@ -10,7 +10,7 @@ export default {
   isFooterAside: false,
   isSidebarFixed: true,
   isHeaderFixed: true,
-  isUseTabsRouter: false,
+  isUseTabsRouter: true,
   showHeader: true,
   brandTheme: '#0052D9',
 };

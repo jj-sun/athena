@@ -64,7 +64,7 @@ service.interceptors.response.use(
     // 鲁棒识别 Sa-Token NotLoginException（后端通用异常处理器返回 code=500 + 含 token/未登录 的 message）
     if (code === 500 && message && /token|未登录|登录已过期/i.test(message)) {
       redirectToLogin();
-      return Promise.reject(new Error('Token expired'));
+      return Promise.reject(new Error('Token已失效'));
     }
     if (code === 200) {
       return data;
@@ -89,6 +89,8 @@ service.interceptors.response.use(
 
 // 处理登录跳转
 const redirectToLogin = () => {
+  console.log('进入登录跳转页面', isRedirecting);
+  console.log(router.currentRoute.value.path);
   if (isRedirecting) return;
   // 已在登录页则不再重复跳转，避免 redirect 参数嵌套
   if (router.currentRoute.value.path === '/login') return;
@@ -98,31 +100,10 @@ const redirectToLogin = () => {
   void MessagePlugin.error('登录已过期，请重新登录');
 
   const userStore = useUserStore();
-  userStore
-    .logout()
-    .catch((e) => {
-      console.error('跳转登录页失败:', e);
-      // 降级方案：使用 window.location
-      window.location.href = '/login';
-    })
-    .finally(() => {
-      console.log('准备跳转登录页');
-      router
-        .replace({
-          path: '/login',
-          query: { redirect: router.currentRoute.value.fullPath },
-        })
-        .then(() => {
-          console.log('跳转成功');
-        })
-        .catch((err) => {
-          console.error('路由跳转失败:', err);
-        })
-        .finally(() => {
-          isRedirecting = false;
-          NProgress.done();
-        });
-    });
+  userStore.logout().then(() => {
+    console.log('跳转成功');
+  });
+  window.location.href = `/login?redirect=${encodeURIComponent(router.currentRoute.value.fullPath)}`;
 };
 
 export default service;

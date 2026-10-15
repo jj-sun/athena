@@ -2,7 +2,7 @@ import Cookies from 'js-cookie';
 import { defineStore } from 'pinia';
 
 import Avatar from '@/assets/img_avatar.gif';
-import { usePermissionStore } from '@/store';
+import { getPermissionStore, usePermissionStore } from '@/store';
 import type { LoginInfo } from '@/types/base';
 import type { UserState } from '@/types/interface';
 
@@ -62,18 +62,22 @@ export const useUserStore = defineStore('user', {
       localStorage.setItem(USER_INFO_KEY, JSON.stringify(userInfo));
     },
     logout() {
-      return new Promise<void>((resolve) => {
-        this.setInfo(InitUserInfo);
-        Cookies.remove(USER_TOKEN_KEY);
-        localStorage.clear();
-        resolve();
+      this.setInfo(InitUserInfo);
+      Cookies.remove(USER_TOKEN_KEY);
+      localStorage.clear();
+      const permissionStore = getPermissionStore();
+      permissionStore.restoreRoutes().then(() => {
+        console.log('清除权限');
       });
+      return Promise.resolve();
     },
   },
   persist: {
     afterRestore: () => {
       const permissionStore = usePermissionStore();
-      permissionStore.initRoutes();
+      permissionStore.initRoutes().then(() => {
+        console.log('初始化路由');
+      });
     },
     key: 'user',
     paths: ['token'],

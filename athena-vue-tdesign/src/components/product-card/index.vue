@@ -13,7 +13,7 @@
     </template>
     <template #status>
       <t-tag :theme="props.product.isSetup ? 'success' : 'default'" :disabled="!props.product.isSetup">
-        {{ props.product.isSetup ? t('components.isSetup.on') : t('components.isSetup.off') }}
+        {{ props.product.isSetup ? '已启用' : '已停用' }}
       </t-tag>
     </template>
     <template #content>
@@ -36,12 +36,12 @@
         trigger="click"
         :options="[
           {
-            content: t('components.manage'),
+            content: '管理',
             value: 'manage',
             onClick: () => handleClickManage(props.product),
           },
           {
-            content: t('components.delete'),
+            content: '删除',
             value: 'delete',
             onClick: () => handleClickDelete(props.product),
           },
@@ -65,8 +65,6 @@ import {
   UserAvatarIcon,
 } from 'tdesign-icons-vue-next';
 import type { PropType } from 'vue';
-
-import { t } from '@/locales';
 
 export interface CardProductType {
   type: number;

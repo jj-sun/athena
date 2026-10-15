@@ -1,5 +1,5 @@
-import Layout from '@/layouts/index.vue';
 import IFrame from '@/layouts/frame/index.vue';
+import Layout from '@/layouts/index.vue';
 
 export default [
   /*  {
@@ -8,10 +8,7 @@ export default [
     redirect: '/dashboard/base',
     name: 'dashboard',
     meta: {
-      title: {
-        zh_CN: '仪表盘',
-        en_US: 'Dashboard',
-      },
+      title: '仪表盘',
       icon: shallowRef(DashboardIcon),
       orderNo: 0,
     },
@@ -21,10 +18,7 @@ export default [
         name: 'DashboardBase',
         component: () => import('@/views/dashboard/base/index.vue'),
         meta: {
-          title: {
-            zh_CN: '概览仪表盘',
-            en_US: 'Overview',
-          },
+          title: '概览仪表盘',
         },
       },
       {
@@ -32,10 +26,7 @@ export default [
         name: 'DashboardDetail',
         component: () => import('@/views/dashboard/detail/index.vue'),
         meta: {
-          title: {
-            zh_CN: '统计报表',
-            en_US: 'Dashboard Detail',
-          },
+          title: '统计报表',
         },
       },
     ],
@@ -46,10 +37,7 @@ export default [
     component: Layout,
     redirect: '/form/base',
     meta: {
-      title: {
-        zh_CN: '表单页',
-        en_US: 'Form',
-      },
+      title: '表单页',
       icon: 'edit-1',
       orderNo: 100,
     },
@@ -59,10 +47,7 @@ export default [
         name: 'FormBase',
         component: () => import('@/views/form/base/index.vue'),
         meta: {
-          title: {
-            zh_CN: '基础表单页',
-            en_US: 'Base Form',
-          },
+          title: '基础表单页',
         },
       },
       {
@@ -70,10 +55,7 @@ export default [
         name: 'FormStep',
         component: () => import('@/views/form/step/index.vue'),
         meta: {
-          title: {
-            zh_CN: '分步表单页',
-            en_US: 'Step Form',
-          },
+          title: '分步表单页',
         },
       },
     ],
@@ -85,10 +67,7 @@ export default [
     redirect: '/frame/doc',
     meta: {
       icon: 'internet',
-      title: {
-        zh_CN: '外部页面',
-        en_US: 'External',
-      },
+      title: '外部页面',
       orderNo: 101,
     },
     children: [
@@ -98,10 +77,7 @@ export default [
         component: IFrame,
         meta: {
           frameSrc: 'https://tdesign.tencent.com/starter/docs/vue-next/get-started',
-          title: {
-            zh_CN: '使用文档（内嵌）',
-            en_US: 'Documentation(IFrame)',
-          },
+          title: '使用文档（内嵌）',
         },
       },
       {
@@ -110,10 +86,7 @@ export default [
         component: IFrame,
         meta: {
           frameSrc: 'https://tdesign.tencent.com/vue-next/getting-started',
-          title: {
-            zh_CN: 'TDesign 文档（内嵌）',
-            en_US: 'TDesign (IFrame)',
-          },
+          title: 'TDesign 文档（内嵌）',
         },
       },
       {
@@ -123,10 +96,7 @@ export default [
         meta: {
           frameSrc: 'https://tdesign.tencent.com/vue-next/getting-started',
           frameBlank: true,
-          title: {
-            zh_CN: 'TDesign 文档（外链',
-            en_US: 'TDesign Doc(Link)',
-          },
+          title: 'TDesign 文档（外链',
         },
       },
     ],
@@ -137,10 +107,7 @@ export default [
     component: Layout,
     redirect: '/result/success',
     meta: {
-      title: {
-        zh_CN: '结果页',
-        en_US: 'Result',
-      },
+      title: '结果页',
       icon: 'check-circle',
       orderNo: 102,
     },
@@ -150,10 +117,7 @@ export default [
         name: 'ResultSuccess',
         component: () => import('@/views/result/success/index.vue'),
         meta: {
-          title: {
-            zh_CN: '成功页',
-            en_US: 'Success',
-          },
+          title: '成功页',
         },
       },
       {
@@ -161,10 +125,7 @@ export default [
         name: 'ResultFail',
         component: () => import('@/views/result/fail/index.vue'),
         meta: {
-          title: {
-            zh_CN: '失败页',
-            en_US: 'Fail',
-          },
+          title: '失败页',
         },
       },
       {
@@ -172,41 +133,38 @@ export default [
         name: 'ResultNetworkError',
         component: () => import('@/views/result/network-error/index.vue'),
         meta: {
-          title: {
-            zh_CN: '网络异常',
-            en_US: 'Network Error',
-          },
+          title: '网络异常',
         },
       },
       {
         path: '403',
         name: 'Result403',
         component: () => import('@/views/result/403/index.vue'),
-        meta: { title: { zh_CN: '无权限', en_US: 'Forbidden' } },
+        meta: { title: '无权限' },
       },
       {
         path: '404',
         name: 'Result404',
         component: () => import('@/views/result/404/index.vue'),
-        meta: { title: { zh_CN: '访问页面不存在页', en_US: 'Not Found' } },
+        meta: { title: '访问页面不存在页' },
       },
       {
         path: '500',
         name: 'Result500',
         component: () => import('@/views/result/500/index.vue'),
-        meta: { title: { zh_CN: '服务器出错页', en_US: 'Server Error' } },
+        meta: { title: '服务器出错页' },
       },
       {
         path: 'browser-incompatible',
         name: 'ResultBrowserIncompatible',
         component: () => import('@/views/result/browser-incompatible/index.vue'),
-        meta: { title: { zh_CN: '浏览器不兼容页', en_US: 'BrowserIncompatible' } },
+        meta: { title: '浏览器不兼容页' },
       },
       {
         path: 'maintenance',
         name: 'ResultMaintenance',
         component: () => import('@/views/result/maintenance/index.vue'),
-        meta: { title: { zh_CN: '系统维护页', en_US: 'Maintenance' } },
+        meta: { title: '系统维护页' },
       },
     ],
   },
@@ -215,13 +173,13 @@ export default [
     name: 'user',
     component: Layout,
     redirect: '/user/index',
-    meta: { title: { zh_CN: '个人中心', en_US: 'User Center' }, icon: 'user-circle', orderNo: 103 },
+    meta: { title: '个人中心', icon: 'user-circle', orderNo: 103 },
     children: [
       {
         path: 'index',
         name: 'UserIndex',
         component: () => import('@/views/user/index.vue'),
-        meta: { title: { zh_CN: '个人中心', en_US: 'User Center' } },
+        meta: { title: '个人中心' },
       },
     ],
   },

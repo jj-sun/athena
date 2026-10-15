@@ -11,7 +11,7 @@ import { getPermissionStore } from '@/store';
 
 NProgress.configure({ showSpinner: false });
 
-function isTokenExpired(): boolean {
+function hasToken(): boolean {
   const token = Cookies.get(USER_TOKEN_KEY);
   return !!token;
 }
@@ -21,7 +21,7 @@ router.beforeEach(async (to, from, next) => {
   const permissionStore = getPermissionStore();
   const { whiteListRouters, asyncRoutes } = permissionStore;
 
-  if (isTokenExpired()) {
+  if (hasToken()) {
     if (to.path === '/login') {
       next();
       return;
