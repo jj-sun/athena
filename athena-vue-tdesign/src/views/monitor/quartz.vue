@@ -217,7 +217,7 @@ function loadTaskBeanOptions(excludeId?: string) {
   taskBeanLoading.value = true;
   getScheduleTaskBeanList(excludeId)
     .then((res) => {
-      taskBeanOptions.value = res.data ?? [];
+      taskBeanOptions.value = res ?? [];
     })
     .catch((err) => {
       console.error('加载任务Bean列表失败', err);

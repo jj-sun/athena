@@ -2,6 +2,7 @@ package com.athena.modules.monitor.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.athena.modules.monitor.domain.RedisInfo;
+import com.athena.modules.monitor.domain.RedisMonitorSnapshot;
 import com.athena.modules.monitor.exception.RedisConnectException;
 
 import java.util.List;
@@ -11,6 +12,13 @@ import java.util.Map;
  * @author Mr.sun
  */
 public interface RedisService {
+
+	/**
+	 * 获取 Redis 监控快照
+	 *
+	 * @return Redis 监控快照
+	 */
+	RedisMonitorSnapshot getMonitorSnapshot() throws RedisConnectException;
 
 	/**
 	 * 获取 redis 的详细信息

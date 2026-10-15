@@ -17,4 +17,67 @@ export interface TaskBeanOption {
   disabled?: boolean;
 }
 
+export interface SystemMetricsOverview {
+  timestamp: number;
+  systemCpuUsage: number | null;
+  processCpuUsage: number | null;
+  heapMemoryUsed: number | null;
+  heapMemoryMax: number | null;
+  diskFree: number | null;
+  diskTotal: number | null;
+  liveThreads: number | null;
+  peakThreads: number | null;
+  uptime: number | null;
+  requestCount: number | null;
+}
+
+export interface MetricNamesResponse {
+  names: string[];
+}
+
+export interface MetricMeasurement {
+  statistic: string;
+  value: number;
+}
+
+export interface MetricAvailableTag {
+  tag: string;
+  values: string[];
+}
+
+export interface MetricDetail {
+  name: string;
+  description: string | null;
+  baseUnit: string | null;
+  measurements: MetricMeasurement[];
+  availableTags: MetricAvailableTag[];
+}
+
+export interface RedisInfoItem {
+  key: string;
+  value: string;
+  description: string | null;
+}
+
+export interface RedisMonitorSnapshot {
+  timestamp: number;
+  redisVersion: string | null;
+  redisMode: string | null;
+  role: string | null;
+  uptimeSeconds: number | null;
+  keyCount: number | null;
+  usedMemory: number | null;
+  peakMemory: number | null;
+  maxMemory: number | null;
+  connectedClients: number | null;
+  blockedClients: number | null;
+  operationsPerSecond: number | null;
+  totalCommandsProcessed: number | null;
+  keyspaceHits: number | null;
+  keyspaceMisses: number | null;
+  keyspaceHitRate: number | null;
+  rejectedConnections: number | null;
+  details: RedisInfoItem[];
+}
+
 export type { PageResult, Result };

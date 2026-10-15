@@ -3,6 +3,7 @@ package com.athena.modules.monitor.controller;
 import com.alibaba.fastjson.JSONArray;
 import com.athena.common.utils.Result;
 import com.athena.modules.monitor.domain.RedisInfo;
+import com.athena.modules.monitor.domain.RedisMonitorSnapshot;
 import com.athena.modules.monitor.service.RedisService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -31,6 +32,11 @@ public class ActuatorRedisController {
     @Autowired
     private RedisService redisService;
 
+    @GetMapping("/snapshot")
+    public Result<RedisMonitorSnapshot> getMonitorSnapshot() throws Exception {
+        return Result.ok(redisService.getMonitorSnapshot());
+    }
+
     /**
      * Redis详细信息
      * @return
@@ -39,7 +45,6 @@ public class ActuatorRedisController {
     @GetMapping("/info")
     public Result<?> getRedisInfo() throws Exception {
         List<RedisInfo> infoList = this.redisService.getRedisInfo();
-        log.info(infoList.toString());
         return Result.ok(infoList);
     }
 

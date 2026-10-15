@@ -3,6 +3,7 @@ package com.athena.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -19,6 +20,9 @@ public class DateUtils {
 	public final static String DATE_PATTERN = "yyyy-MM-dd";
 	/** 时间格式(yyyy-MM-dd HH:mm:ss) */
 	public final static String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
+
+    public static final DateTimeFormatter DEFAULT_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
      * 日期格式化 日期格式为：yyyy-MM-dd
@@ -147,5 +151,23 @@ public class DateUtils {
      */
     public static Date now() {
         return new Date();
+    }
+
+
+    /** 毫秒级时间戳 → 字符串（默认格式，系统时区） */
+    public static String formatMillis(long millis) {
+        return formatMillis(millis, DateTimeFormatter.ofPattern(DATE_TIME_PATTERN), ZoneId.systemDefault());
+    }
+
+    /** 秒级时间戳 → 字符串（默认格式，系统时区） */
+    public static String formatSeconds(long seconds) {
+        return LocalDateTime.ofInstant(Instant.ofEpochSecond(seconds), ZoneId.systemDefault())
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN));
+    }
+
+    /** 毫秒级时间戳 → 自定义格式字符串 */
+    public static String formatMillis(long millis, DateTimeFormatter formatter, ZoneId zoneId) {
+        return LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), zoneId)
+                .format(formatter);
     }
 }

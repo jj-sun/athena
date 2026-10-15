@@ -35,7 +35,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: metrics,httptrace
+        include: httptrace
 
 spring:
   # jackson时间格式化
