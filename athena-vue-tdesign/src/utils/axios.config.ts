@@ -8,6 +8,7 @@ import { MessagePlugin } from 'tdesign-vue-next';
 import { USER_TOKEN_KEY } from '@/constants';
 import router from '@/router';
 import { useUserStore } from '@/store';
+import { randomNonce, signParams } from './sign';
 
 const baseURL: string = import.meta.env.VITE_API_URL || '/athena';
 export const CONTENT_TYPE = 'Content-Type';
@@ -39,7 +40,7 @@ const service = Axios.create({
 });
 
 service.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
+  async (config: InternalAxiosRequestConfig) => {
     config.headers ??= {} as AxiosRequestHeaders;
     const token = Cookies.get(USER_TOKEN_KEY);
     if (!config.headers.has(CONTENT_TYPE)) {
@@ -51,6 +52,17 @@ service.interceptors.request.use(
     if (token) {
       config.headers[USER_TOKEN_KEY] = token;
     }
+
+    // 防重放签名：附加 timestamp / nonce / sign query 参数，与后端 sa-token-sign 校验保持一致
+    const secret = import.meta.env.VITE_REPLAY_SECRET;
+    if (secret && typeof crypto !== 'undefined' && crypto.subtle) {
+      const timestamp = String(Date.now());
+      const nonce = randomNonce();
+      const queryParams = (config.params ?? {}) as Record<string, unknown>;
+      const sign = await signParams({ ...queryParams, timestamp, nonce }, secret);
+      config.params = { ...queryParams, timestamp, nonce, sign };
+    }
+
     return config;
   },
   (error) => {

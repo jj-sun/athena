@@ -135,6 +135,12 @@
 			<artifactId>sa-token-jwt</artifactId>
 			<version>${sa-token.version}</version>
 		</dependency>
+		<!-- Sa-Token 接口签名（防重放） -->
+		<dependency>
+			<groupId>cn.dev33</groupId>
+			<artifactId>sa-token-sign</artifactId>
+			<version>${sa-token.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>com.baomidou</groupId>
