@@ -1,5 +1,6 @@
 package com.athena.modules.sys.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.athena.common.base.dto.PageDto;
 import com.athena.common.utils.PageUtils;
 import com.athena.common.utils.Result;
@@ -26,7 +27,7 @@ public class SysLogController {
 	 * 列表
 	 */
 	@GetMapping("/list")
-	//@PreAuthorize("hasAuthority('sys:log:list')")
+	@SaCheckPermission("sys:log:list")
 	public Result<PageUtils> list(SysLog sysLog, PageDto pageDto){
 		PageUtils page = sysLogService.queryPage(sysLog, pageDto);
 		return Result.ok(page);

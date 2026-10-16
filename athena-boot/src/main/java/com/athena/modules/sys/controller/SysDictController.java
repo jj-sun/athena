@@ -1,5 +1,6 @@
 package com.athena.modules.sys.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.athena.common.annotation.Log;
 import com.athena.common.base.dto.PageDto;
 import com.athena.common.cache.DictCache;
@@ -29,7 +30,7 @@ public class SysDictController {
      * 所有字典列表
      */
     @GetMapping("/list")
-    //@PreAuthorize("hasAuthority('sys:user:list')")
+    @SaCheckPermission("sys:dict:list")
     public Result<PageUtils> list(SysDict dict, PageDto pageDto){
         PageUtils page = dictService.queryPage(dict, pageDto);
         return Result.ok(page);
@@ -39,7 +40,7 @@ public class SysDictController {
      * 字典信息
      */
     @GetMapping("/info/{id}")
-    //@PreAuthorize("hasAuthority('sys:user:info')")
+    @SaCheckPermission("sys:dict:info")
     public Result<SysDict> info(@PathVariable("id") String id){
         SysDict dict = dictService.getById(id);
 
@@ -51,7 +52,7 @@ public class SysDictController {
      */
     @Log("保存字典")
     @PostMapping("/save")
-    //@PreAuthorize("hasAuthority('sys:user:save')")
+    @SaCheckPermission("sys:dict:save")
     public Result<Object> save(@RequestBody SysDict dict){
         ValidatorUtils.validateEntity(dict, AddGroup.class);
 
@@ -67,7 +68,7 @@ public class SysDictController {
      */
     @Log("修改字典")
     @PutMapping("/update")
-    //@PreAuthorize("hasAuthority('sys:user:update')")
+    @SaCheckPermission("sys:dict:update")
     public Result<Object> update(@RequestBody SysDict dict){
         ValidatorUtils.validateEntity(dict, UpdateGroup.class);
 
@@ -83,7 +84,7 @@ public class SysDictController {
      */
     @Log("删除字典")
     @DeleteMapping("/delete")
-    //@PreAuthorize("hasAuthority('sys:user:delete')")
+    @SaCheckPermission("sys:dict:delete")
     public Result<Object> delete(@RequestParam(name = "id") String id){
         dictService.deleteEntity(id);
 

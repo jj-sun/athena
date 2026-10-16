@@ -1,5 +1,6 @@
 package com.athena.modules.sys.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.athena.common.annotation.Log;
 import com.athena.common.constant.Constant;
 import com.athena.common.exception.RRException;
@@ -47,7 +48,7 @@ public class SysPermissionController extends AbstractController {
 	 * 所有菜单列表
 	 */
 	@GetMapping("/list")
-	//@PreAuthorize("hasAuthority('sys:menu:list')")
+	@SaCheckPermission("sys:menu:list")
 	public Result<List<SysPermission>> list(){
 		List<SysPermission> menuList = sysPermissionService.permissionTree();
 		return Result.ok(menuList);
@@ -57,7 +58,7 @@ public class SysPermissionController extends AbstractController {
 	 * 选择菜单(添加、修改菜单)
 	 */
 	@GetMapping("/select")
-	//@PreAuthorize("hasAuthority('sys:menu:select')")
+	@SaCheckPermission("sys:menu:select")
 	public Result<List<SysMenuTree>> select(){
 		//查询列表数据
 		List<SysMenuTree> menuList = sysPermissionService.treeSelect();
@@ -69,7 +70,7 @@ public class SysPermissionController extends AbstractController {
 	 * 菜单信息
 	 */
 	@GetMapping("/info/{id}")
-	//@PreAuthorize("hasAuthority('sys:menu:info')")
+	@SaCheckPermission("sys:menu:info")
 	public Result<SysPermission> info(@PathVariable("id") String id){
 		SysPermission menu = sysPermissionService.getById(id);
 		return Result.ok(menu);
@@ -80,7 +81,7 @@ public class SysPermissionController extends AbstractController {
 	 */
 	@Log("保存菜单")
 	@PostMapping("/save")
-	//@PreAuthorize("hasAuthority('sys:menu:save')")
+	@SaCheckPermission("sys:menu:save")
 	public Result<Object> save(@RequestBody SysPermission menu){
 		//数据校验
 		verifyForm(menu);
@@ -95,7 +96,7 @@ public class SysPermissionController extends AbstractController {
 	 */
 	@Log("修改菜单")
 	@PutMapping("/update")
-	//@PreAuthorize("hasAuthority('sys:menu:update')")
+	@SaCheckPermission("sys:menu:update")
 	public Result<Object> update(@RequestBody SysPermission menu){
 		//数据校验
 		verifyForm(menu);
@@ -110,7 +111,7 @@ public class SysPermissionController extends AbstractController {
 	 */
 	@Log("删除菜单")
 	@DeleteMapping("/delete")
-	//@PreAuthorize("hasAuthority('sys:menu:delete')")
+	@SaCheckPermission("sys:menu:delete")
 	public Result<Object> delete(@RequestParam(name = "id") String id){
 
 		//判断是否有子菜单或按钮

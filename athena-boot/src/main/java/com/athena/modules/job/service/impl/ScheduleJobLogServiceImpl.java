@@ -21,7 +21,7 @@ public class ScheduleJobLogServiceImpl extends ServiceImpl<ScheduleJobLogMapper,
 	public PageUtils queryPage(ScheduleJobLog scheduleJobLog, PageDto pageDto) {
 
 		IPage<ScheduleJobLog> page = this.page(
-			new Query<ScheduleJobLog>().getPage(pageDto),
+			new Query<ScheduleJobLog>().getPage(pageDto, "ctime", false),
 			new QueryWrapper<ScheduleJobLog>()
 		);
 

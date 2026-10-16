@@ -25,7 +25,7 @@ public class SysDictItemServiceImpl extends ServiceImpl<SysDictItemMapper, SysDi
     @Override
     public PageUtils queryPage(SysDictItem dictItem, PageDto pageDto) {
         IPage<SysDictItem> page = this.page(
-                new Query<SysDictItem>().getPage(pageDto),
+                new Query<SysDictItem>().getPage(pageDto, "ctime", false),
                 new LambdaQueryWrapper<SysDictItem>()
                         .eq(StringUtils.isNotBlank(dictItem.getDictId()), SysDictItem::getDictId, dictItem.getDictId())
                         .like(StringUtils.isNotBlank(dictItem.getItemText()), SysDictItem::getItemText, dictItem.getItemText())

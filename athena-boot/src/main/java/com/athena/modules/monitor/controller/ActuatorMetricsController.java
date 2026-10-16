@@ -1,5 +1,6 @@
 package com.athena.modules.monitor.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.athena.common.utils.Result;
 import com.athena.modules.monitor.domain.SystemMetricsOverview;
 import com.athena.modules.monitor.service.SystemMetricsService;
@@ -15,6 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/sys/actuator/metrics")
+@SaCheckPermission("sys:monitor:metrics")
 public class ActuatorMetricsController {
 
 	private final SystemMetricsService systemMetricsService;

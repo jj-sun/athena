@@ -10,7 +10,7 @@
   >
     <template v-if="type === 'password'">
       <t-form-item name="account">
-        <t-input v-model="formData.username" size="large" :placeholder="`${'请输入账号'}：admin`">
+        <t-input v-model="formData.username" size="large" placeholder="请输入账号">
           <template #prefix-icon>
             <t-icon name="user" />
           </template>
@@ -23,7 +23,7 @@
           size="large"
           :type="showPsw ? 'text' : 'password'"
           clearable
-          :placeholder="`${'请输入登录密码'}：admin`"
+          placeholder="请输入登录密码"
         >
           <template #prefix-icon>
             <t-icon name="lock-on" />
@@ -32,6 +32,27 @@
             <t-icon :name="showPsw ? 'browse' : 'browse-off'" @click="showPsw = !showPsw" />
           </template>
         </t-input>
+      </t-form-item>
+
+      <t-form-item name="captcha">
+        <div class="captcha-container">
+          <t-input v-model="formData.captcha" size="large" placeholder="请输入验证码" :maxlength="6">
+            <template #prefix-icon>
+              <t-icon name="secured" />
+            </template>
+          </t-input>
+          <img
+            v-if="captchaImage"
+            class="captcha-image"
+            :src="`data:image/png;base64,${captchaImage}`"
+            alt="验证码"
+            title="点击刷新验证码"
+            @click="refreshCaptcha"
+          />
+          <t-button v-else size="large" variant="outline" :loading="captchaLoading" @click="refreshCaptcha">
+            加载验证码
+          </t-button>
+        </div>
       </t-form-item>
 
       <div class="check-container remember-pwd">
@@ -82,19 +103,21 @@
 import QrcodeVue from 'qrcode.vue';
 import type { FormInstanceFunctions, FormRule, SubmitContext } from 'tdesign-vue-next';
 import { MessagePlugin } from 'tdesign-vue-next';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import { login } from '@/api/base/auth';
+import { getCaptcha, login } from '@/api/base/auth';
 import { useCounter } from '@/hooks';
 import { useUserStore } from '@/store';
+import { randomNonce } from '@/utils/sign';
 
 const userStore = useUserStore();
 
 const INITIAL_DATA = {
   phone: '',
-  username: 'admin',
-  password: '123456',
+  username: '',
+  password: '',
+  captcha: '',
   verifyCode: '',
   checked: false,
 };
@@ -103,6 +126,7 @@ const FORM_RULES: Record<string, FormRule[]> = {
   phone: [{ required: true, message: '手机号必填', type: 'error' }],
   username: [{ required: true, message: '账号必填', type: 'error' }],
   password: [{ required: true, message: '密码必填', type: 'error' }],
+  captcha: [{ required: true, message: '验证码必填', type: 'error' }],
   verifyCode: [{ required: true, message: '验证码必填', type: 'error' }],
 };
 
@@ -112,6 +136,12 @@ const form = ref<FormInstanceFunctions>();
 const formData = ref({ ...INITIAL_DATA });
 const showPsw = ref(false);
 
+/** 验证码图片（base64，不含 data URI 前缀） */
+const captchaImage = ref('');
+/** 本次验证码的随机标识，登录时必须原样回传 */
+const checkKey = ref('');
+const captchaLoading = ref(false);
+
 const [countDown, handleCounter] = useCounter();
 
 const switchType = (val: string) => {
@@ -120,6 +150,29 @@ const switchType = (val: string) => {
 
 const router = useRouter();
 const route = useRoute();
+
+/**
+ * 拉取验证码。每次都必须换新的 checkKey：后端以 checkKey + 验证码 计算存储键，
+ * 复用旧 checkKey 会导致校验失败。
+ */
+const refreshCaptcha = async () => {
+  if (captchaLoading.value) return;
+  captchaLoading.value = true;
+  try {
+    checkKey.value = randomNonce();
+    captchaImage.value = await getCaptcha(checkKey.value);
+    formData.value.captcha = '';
+  } catch (err) {
+    captchaImage.value = '';
+    console.log('验证码加载失败', err);
+  } finally {
+    captchaLoading.value = false;
+  }
+};
+
+onMounted(() => {
+  void refreshCaptcha();
+});
 
 /**
  * 发送验证码
@@ -138,7 +191,7 @@ const onSubmit = (ctx: SubmitContext) => {
   if (ctx.validateResult === true) {
     if (loading.value) return;
     loading.value = true;
-    login(formData.value.username, formData.value.password)
+    login(formData.value.username, formData.value.password, formData.value.captcha, checkKey.value)
       .then((loginRes) => {
         userStore.saveUser(loginRes);
         MessagePlugin.success('登录成功');
@@ -149,6 +202,8 @@ const onSubmit = (ctx: SubmitContext) => {
       .catch((err) => {
         console.log('登录失败', err);
         MessagePlugin.error(err?.message || '登录失败');
+        // 验证码为一次性凭证，后端无论校验成功与否都会消费掉，失败后必须重新获取
+        void refreshCaptcha();
       })
       .finally(() => {
         loading.value = false;
@@ -158,4 +213,24 @@ const onSubmit = (ctx: SubmitContext) => {
 </script>
 <style lang="less" scoped>
 @import '../index.less';
+
+.captcha-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+
+  .t-input {
+    flex: 1;
+  }
+
+  .captcha-image {
+    width: 120px;
+    height: 40px;
+    cursor: pointer;
+    border-radius: 3px;
+    border: 1px solid var(--td-component-border);
+    object-fit: cover;
+  }
+}
 </style>

@@ -1,5 +1,6 @@
 package com.athena.modules.sys.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.athena.common.annotation.Log;
 import com.athena.common.base.dto.PageDto;
 import com.athena.common.base.select.BaseSelect;
@@ -43,7 +44,7 @@ public class SysRoleController extends AbstractController {
 	 * 角色列表
 	 */
 	@GetMapping("/list")
-	//@PreAuthorize("hasAuthority('sys:role:list')")
+	@SaCheckPermission("sys:role:list")
 	public Result<PageUtils> list(SysRole role, PageDto pageDto){
 
 		PageUtils page = sysRoleService.queryPage(role, pageDto);
@@ -55,7 +56,7 @@ public class SysRoleController extends AbstractController {
 	 * 角色列表
 	 */
 	@GetMapping("/select")
-	//@PreAuthorize("hasAuthority('sys:role:select')")
+	@SaCheckPermission("sys:role:select")
 	public Result<List<BaseSelect>> select(){
 		List<SysRole> list = sysRoleService.list();
 		List<BaseSelect> selectList = Lists.newArrayList();
@@ -69,7 +70,7 @@ public class SysRoleController extends AbstractController {
 	 * 角色信息
 	 */
 	@GetMapping("/info/{roleId}")
-	//@PreAuthorize("hasAuthority('sys:role:info')")
+	@SaCheckPermission("sys:role:info")
 	public Result<SysRole> info(@PathVariable("roleId") String roleId){
 		SysRole role = sysRoleService.getById(roleId);
 		
@@ -81,7 +82,7 @@ public class SysRoleController extends AbstractController {
 	 */
 	@Log("保存角色")
 	@PostMapping("/save")
-	//@PreAuthorize("hasAuthority('sys:role:save')")
+	@SaCheckPermission("sys:role:save")
 	public Result<Object> save(@RequestBody SysRole role){
 		ValidatorUtils.validateEntity(role);
 		
@@ -95,7 +96,7 @@ public class SysRoleController extends AbstractController {
 	 */
 	@Log("修改角色")
 	@PutMapping("/update")
-	//@PreAuthorize("hasAuthority('sys:role:update')")
+	@SaCheckPermission("sys:role:update")
 	public Result<Object> update(@RequestBody SysRole role){
 		ValidatorUtils.validateEntity(role);
 		
@@ -109,7 +110,7 @@ public class SysRoleController extends AbstractController {
 	 */
 	@Log("删除角色")
 	@DeleteMapping("/delete")
-	//@PreAuthorize("hasAuthority('sys:role:delete')")
+	@SaCheckPermission("sys:role:delete")
 	public Result<Object> delete(@RequestParam(name = "id") String id){
 		sysRoleService.deleteEntity(id);
 		return Result.ok();
@@ -117,6 +118,7 @@ public class SysRoleController extends AbstractController {
 
 	@Log("批量删除角色")
 	@DeleteMapping("/deleteBatch")
+	@SaCheckPermission("sys:role:delete")
 	public Result<Object> deleteBatch(@RequestParam(name = "ids") String ids) {
 		sysRoleService.deleteBatch(Arrays.asList(ids.split(",")));
 		return Result.ok();
@@ -126,6 +128,7 @@ public class SysRoleController extends AbstractController {
 	 * 获取角色关联的用户列表
 	 */
 	@GetMapping("/listUsers")
+	@SaCheckPermission("sys:role:list")
 	public Result<PageUtils> listUsers(@RequestParam("roleId") String roleId, PageDto pageDto){
 		List<String> userIds = sysUserRoleService.queryUserIdList(roleId);
 		if (userIds == null || userIds.isEmpty()) {
@@ -134,7 +137,7 @@ public class SysRoleController extends AbstractController {
 					pageDto.getPage() != null ? pageDto.getPage().intValue() : 1));
 		}
 		IPage<SysUser> page = sysUserService.page(
-				new Query<SysUser>().getPage(pageDto),
+				new Query<SysUser>().getPage(pageDto, "ctime", false),
 				new LambdaQueryWrapper<SysUser>().in(SysUser::getId, userIds)
 		);
 		return Result.ok(new PageUtils(page));
@@ -145,6 +148,7 @@ public class SysRoleController extends AbstractController {
 	 */
 	@Log("添加用户到角色")
 	@PostMapping("/addUser")
+	@SaCheckPermission("sys:role:update")
 	public Result<Object> addUser(@RequestBody Map<String, Object> params){
 		String roleId = (String) params.get("roleId");
 		@SuppressWarnings("unchecked")
@@ -163,6 +167,7 @@ public class SysRoleController extends AbstractController {
 	 */
 	@Log("从角色移除用户")
 	@DeleteMapping("/removeUser")
+	@SaCheckPermission("sys:role:update")
 	public Result<Object> removeUser(@RequestParam("roleId") String roleId, @RequestParam("userId") String userId){
 		sysUserRoleService.deleteUserRole(userId, roleId);
 		return Result.ok();

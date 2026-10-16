@@ -5,6 +5,7 @@ import cn.dev33.satoken.secure.BCrypt;
 import cn.dev33.satoken.secure.SaSecureUtil;
 import com.athena.common.annotation.Log;
 import com.athena.common.base.dto.PageDto;
+import com.athena.common.exception.RRException;
 import com.athena.common.utils.PageUtils;
 import com.athena.common.utils.PasswordUtils;
 import com.athena.common.utils.Result;
@@ -109,10 +110,13 @@ public class SysUserController extends AbstractController {
 
 	/**
 	 * 管理员重置用户密码
+	 *
+	 * <p>使用独立权限码：重置密码等于接管该账号，不应与普通"修改用户"共用 sys:user:update，
+	 * 否则任何能改用户资料的人都可直接登录为他人。超管账号的目标校验在 service 层完成。
 	 */
 	@Log("重置密码")
 	@PostMapping("/resetPassword")
-	@SaCheckPermission("sys:user:update")
+	@SaCheckPermission("sys:user:resetPassword")
 	public Result<Object> resetPassword(@RequestBody Map<String, String> params){
 		String id = params.get("id");
 		String password = params.get("password");
@@ -143,14 +147,17 @@ public class SysUserController extends AbstractController {
 	 * 用户信息
 	 */
 	@GetMapping("/info/{id}")
-	//@PreAuthorize("hasAuthority('sys:user:info')")
+	@SaCheckPermission("sys:user:info")
 	public Result<SysUser> info(@PathVariable("id") String id){
 		SysUser user = sysUserService.getById(id);
-		
+		if(user == null){
+			throw new RRException("用户不存在");
+		}
+
 		//获取用户所属的角色列表
 		List<String> roleIdList = sysUserRoleService.queryRoleIdList(id);
 		user.setRoleIdList(roleIdList);
-		
+
 		return Result.ok(user);
 	}
 	

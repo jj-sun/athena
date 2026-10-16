@@ -19,12 +19,14 @@ public class PageDto implements Serializable {
 
     private Long pageSize;
 
+    /**
+     * 排序字段。由客户端传入，必须经 SQLFilter.requireOrderField 白名单校验后才能使用。
+     */
     private String sidx;
 
+    /**
+     * 排序方式，仅用于选择 ASC / DESC 字面量，不参与 SQL 拼接。
+     */
     private String order;
-
-    private String defaultOrderField;
-
-    private boolean isAsc;
 
 }

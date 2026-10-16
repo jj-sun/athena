@@ -56,7 +56,7 @@ public class ScheduleJobServiceImpl extends ServiceImpl<ScheduleJobMapper, Sched
 	public PageUtils queryPage(ScheduleJob scheduleJob, PageDto pageDto) {
 
 		IPage<ScheduleJob> page = this.page(
-			new Query<ScheduleJob>().getPage(pageDto),
+			new Query<ScheduleJob>().getPage(pageDto, "ctime", false),
 			new LambdaQueryWrapper<ScheduleJob>().like(StringUtils.isNotBlank(scheduleJob.getBeanName()), ScheduleJob::getBeanName, scheduleJob.getBeanName())
 					.eq(Objects.nonNull(scheduleJob.getStatus()), ScheduleJob::getStatus, scheduleJob.getStatus())
 		);

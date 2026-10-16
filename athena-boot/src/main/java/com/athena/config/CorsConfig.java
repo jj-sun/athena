@@ -10,6 +10,7 @@ import cn.dev33.satoken.sign.template.SaSignTemplate;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
 import com.athena.common.utils.Result;
+import com.athena.config.saToken.PublicPaths;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -31,13 +32,9 @@ public class CorsConfig implements WebMvcConfigurer {
 
     @Bean
     public SaServletFilter saServletFilter(SaSignTemplate saSignTemplate) {
+        // 免签名的路径与登录拦截器共用同一份定义（PublicPaths），避免两处漂移。
         return new SaServletFilter().addInclude("/**")
-                .addExclude("/favicon.ico",
-                        // 静态资源 & 文档，不参与签名校验
-                        "/**.js", "/**.css", "/**.html", "/**.svg", "/**.pdf",
-                        "/**.jpg", "/**.png", "/**.ico", "/**.ttf", "/**.woff", "/**.woff2",
-                        "/doc.html", "/druid/**", "/swagger-ui.html", "/swagger**/**",
-                        "/webjars/**", "/v2/**", "/v3/**")
+                .addExclude(PublicPaths.signExcludes().toArray(new String[0]))
                 .setAuth(obj -> {
                     SaManager.getLog().debug("----- 请求path={}, 提交token={}", SaHolder.getRequest().getRequestPath(), StpUtil.getTokenValue());
                     // 防重放：时间戳窗口 + nonce 去重 + 参数签名（OPTIONS 预检跳过）

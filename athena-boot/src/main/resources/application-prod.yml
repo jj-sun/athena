@@ -20,18 +20,31 @@ spring:
       test-on-borrow: false
       test-on-return: false
       stat-view-servlet:
-        enabled: true
-        url-pattern: /druid/*
-        #login-username: admin
-        #login-password: admin
+        # 生产环境关闭 Druid 监控台。
+        # 关键：该控制台是 starter 注册的独立 servlet，Sa-Token 的登录拦截器（Spring MVC
+        # HandlerInterceptor）根本看不到它，所以“从免登录白名单里去掉 /druid/**”并不能保护它，
+        # 必须在此关闭。浏览器访问 /druid/ 也无法携带 X-Access-Token，无法用登录态兜底。
+        enabled: false
       filter:
         stat:
           log-slow-sql: true
           slow-sql-millis: 1000
           merge-sql: false
         wall:
-          config:
-            multi-statement-allow: true
+          # 显式关闭 Druid SQL 防火墙，避免被误开启。
+          # 说明：它此前从未生效 —— starter 的 WallFilter bean 由 filter.wall.enabled 控制且无默认值，
+          # 而旧配置只设置了子项 filter.wall.config.multi-statement-allow，等于死配置。
+          # 该子项本身也不安全（true 表示允许多语句执行）。SQL 注入已在应用层收口：
+          # 排序字段/表名走白名单校验，并注册了 MyBatis-Plus BlockAttackInnerInterceptor。
+          enabled: false
+# 生产环境不暴露接口文档
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+knife4j:
+  enable: false
 logging:
   level:
     com.athena.modules.system.mapper: info

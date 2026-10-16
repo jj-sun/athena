@@ -1,5 +1,6 @@
 package com.athena.modules.monitor.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.alibaba.fastjson.JSONArray;
 import com.athena.common.utils.Result;
 import com.athena.modules.monitor.domain.RedisInfo;
@@ -27,6 +28,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/sys/actuator/redis")
+@SaCheckPermission("sys:monitor:redis")
 public class ActuatorRedisController {
 
     @Autowired

@@ -32,7 +32,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
 	public PageUtils queryPage(SysRole role, PageDto pageDto) {
 
 		IPage<SysRole> page = this.page(
-			new Query<SysRole>().getPage(pageDto)
+			new Query<SysRole>().getPage(pageDto, "ctime", false)
 		);
 
 		return new PageUtils(page);

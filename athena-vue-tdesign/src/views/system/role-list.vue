@@ -142,11 +142,15 @@
           <t-form-item label="选择用户">
             <t-select
               v-model:value="selectedUserIds"
-              placeholder="请选择要添加到当前角色的用户"
+              placeholder="输入用户名或姓名搜索后选择"
               multiple
               :options="availableUserOptions"
               :max="50"
               filterable
+              :filter="() => true"
+              :loading="userSearchLoading"
+              loading-text="加载中…"
+              @search="onUserSearch"
             />
           </t-form-item>
         </t-form>
@@ -245,6 +249,8 @@ const userRowKey = useRowKey('id');
 const userPagination = usePagination(loadRoleUsers);
 const selectedUserIds = ref([] as Array<string>);
 const availableUserOptions = ref([] as Array<{ label: string; value: string }>);
+/** 远程搜索用户时的加载态 */
+const userSearchLoading = ref(false);
 
 const userColumns = useTableColumn(
   [
@@ -510,21 +516,43 @@ function onUserDrawerConfirm() {
   userModalDrawerRef.value?.close();
 }
 
+/**
+ * 按关键字远程搜索用户。
+ *
+ * 这里刻意不再用 pageSize: 9999 一次性拉全表 —— 后端已限制单页最大 1000 条，
+ * 且超大 pageSize 属于批量拖取数据的行为。
+ */
+async function searchUsers(keyword: string) {
+  userSearchLoading.value = true;
+  try {
+    const res = await getUserList({
+      page: 1,
+      pageSize: 20,
+      username: keyword || undefined,
+    });
+    // 已在当前角色中的用户不再出现在候选项里（按已加载的角色成员排除，属尽力而为）
+    const currentUserIds = new Set(userList.map((u: SysUser) => u.id));
+    availableUserOptions.value = res.list
+      .filter((u: SysUser) => !currentUserIds.has(u.id))
+      .map((u: SysUser) => ({ label: `${u.realname || u.username}（${u.username}）`, value: u.id }));
+  } catch (err) {
+    console.log(err);
+    MessagePlugin.error('加载用户列表失败');
+  } finally {
+    userSearchLoading.value = false;
+  }
+}
+
+function onUserSearch(filterWords: string) {
+  void searchUsers(filterWords ?? '');
+}
+
 function onOpenAddUserDialog() {
   if (!currentRole.value) return;
   selectedUserIds.value = [];
-  getUserList({ page: 1, pageSize: 9999 })
-    .then((res) => {
-      const currentUserIds = new Set(userList.map((u: SysUser) => u.id));
-      availableUserOptions.value = res.list
-        .filter((u: SysUser) => !currentUserIds.has(u.id))
-        .map((u: SysUser) => ({ label: `${u.realname || u.username}（${u.username}）`, value: u.id }));
-      addUserDialogRef.value?.toggle();
-    })
-    .catch((err) => {
-      console.log(err);
-      MessagePlugin.error('加载用户列表失败');
-    });
+  availableUserOptions.value = [];
+  void searchUsers('');
+  addUserDialogRef.value?.toggle();
 }
 
 async function onAddUserConfirm() {

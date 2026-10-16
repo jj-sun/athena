@@ -85,16 +85,31 @@ service.interceptors.response.use(
   },
   (error) => {
     const status = error?.response?.status;
-    if (status === 401 || status === 403) {
+    const backendMessage = error?.response?.data?.message;
+
+    // 401：登录态无效，需要重新登录
+    if (status === 401) {
       redirectToLogin();
       return Promise.reject(new Error('Unauthorized'));
     }
+
+    // 403：已登录但权限不足。这里不能跳登录页 —— 那样会把用户正常会话直接销毁，
+    // 表现为"点了没有权限的按钮就被踢下线"。只提示并让调用方自行处理。
+    if (status === 403) {
+      const message = backendMessage || '无操作权限';
+      void MessagePlugin.error(message);
+      error.name = 'ApiError';
+      error.code = status;
+      error.message = message;
+      return Promise.reject(error);
+    }
+
     if (import.meta.env.MODE === 'development') {
       console.log(error);
     }
     error.name = 'ApiError';
     error.code = status || 500;
-    error.message = error?.response?.data?.error || '服务器异常，请稍后重试…';
+    error.message = backendMessage || '服务器异常，请稍后重试…';
     return Promise.reject(error);
   },
 );

@@ -20,18 +20,25 @@ spring:
       test-on-borrow: false
       test-on-return: false
       stat-view-servlet:
-        enabled: true
-        url-pattern: /druid/*
-        #login-username: admin
-        #login-password: admin
+        # 测试环境关闭 Druid 监控台。它是 starter 注册的独立 servlet，Sa-Token 的登录拦截器
+        # （Spring MVC HandlerInterceptor）看不到它，因此仅从免登录白名单移除 /druid/** 无效。
+        enabled: false
       filter:
         stat:
           log-slow-sql: true
           slow-sql-millis: 1000
           merge-sql: false
         wall:
-          config:
-            multi-statement-allow: true
+          # 显式关闭 Druid SQL 防火墙（此前从未生效，详见 application-prod.yml 中的说明）
+          enabled: false
+# 测试环境不暴露接口文档
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+knife4j:
+  enable: false
 logging:
   level:
     com.athena.modules.system.mapper: info

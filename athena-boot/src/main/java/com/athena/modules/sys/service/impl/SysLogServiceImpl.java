@@ -23,7 +23,7 @@ public class SysLogServiceImpl extends ServiceImpl<SysLogMapper, SysLog> impleme
     public PageUtils queryPage(SysLog sysLog, PageDto pageDto) {
 
         IPage<SysLog> page = this.page(
-            new Query<SysLog>().getPage(pageDto),
+            new Query<SysLog>().getPage(pageDto, "create_date", false),
                 new LambdaQueryWrapper<SysLog>().like(StringUtils.isNotBlank(sysLog.getOperation()), SysLog::getOperation, sysLog.getOperation())
         );
 

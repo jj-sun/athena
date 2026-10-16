@@ -5,7 +5,6 @@ import cn.dev33.satoken.secure.SaSecureUtil;
 import cn.dev33.satoken.stp.SaLoginConfig;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
-import cn.dev33.satoken.stp.parameter.SaLoginParameter;
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.LineCaptcha;
 import cn.hutool.core.bean.BeanUtil;
@@ -22,7 +21,6 @@ import com.athena.modules.sys.service.SysUserService;
 import com.google.common.collect.Maps;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -33,7 +31,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 
@@ -46,6 +43,21 @@ import java.util.Objects;
 @Slf4j
 public class SysLoginController {
 
+	/**
+	 * 登录失败的统一提示。
+	 * "用户不存在"与"密码错误"必须返回同一文案，否则可被用来枚举系统账号。
+	 */
+	private static final String LOGIN_FAIL_MESSAGE = "用户名或密码错误！";
+
+	/** 验证码有效期（秒） */
+	private static final long CAPTCHA_EXPIRE_SECONDS = 5 * 60L;
+
+	/**
+	 * 用于抹平响应时间差的固定 BCrypt 哈希。
+	 * 用户不存在时对固定值执行一次 checkpw，使耗时与"用户存在但密码错误"一致。
+	 */
+	private static final String TIMING_DUMMY_HASH =
+			BCrypt.hashpw("athena-timing-equalization-dummy", BCrypt.gensalt());
 
 	@Autowired
 	private SysUserService userService;
@@ -61,20 +73,12 @@ public class SysLoginController {
 
 	@PostMapping(value = "/login")
 	public Result<?> login(@RequestBody SysLoginForm loginForm) {
-		//首先校验验证码
-		/*String captcha = loginForm.getCaptcha();
-		if(captcha==null){
-			return Result.error(500, "验证码无效");
+		// 先校验验证码：失败路径不涉及解密与数据库查询，成本更低，也避免被用来探测账号
+		String captchaError = verifyCaptcha(loginForm.getCheckKey(), loginForm.getCaptcha());
+		if (captchaError != null) {
+			return Result.error(captchaError);
 		}
-		String lowerCaseCaptcha = captcha.toLowerCase();
-		String key = SecureUtil.md5(loginForm.getCheckKey() + ":" + lowerCaseCaptcha);
-		Object checkCode = redisUtils.get(key);
-		//当进入登录页时，有一定几率出现验证码错误 #1714
-		if(checkCode==null || !checkCode.toString().equals(lowerCaseCaptcha)) {
-			return Result.error(500, "验证码无效");
-		}*/
 
-		boolean loginStatus = false;
 		String username = loginForm.getUsername();
 		String password = loginForm.getPassword();
 		try {
@@ -82,20 +86,22 @@ public class SysLoginController {
 			username = SaSecureUtil.rsaDecryptByPrivate(rsaPrivateKey, username);
 			password = SaSecureUtil.rsaDecryptByPrivate(rsaPrivateKey, password);
 		} catch (Exception e) {
-			return Result.error("用户名或密码错误！");
+			return Result.error(LOGIN_FAIL_MESSAGE);
 		}
 		if(StringUtils.isBlank(username)) {
 			return Result.error("用户名必填！");
 		}
+
 		SysUser user = userService.queryByUserName(username);
 		if(Objects.isNull(user)) {
-			return Result.error("信息有误！");
+			// 用户不存在时同样跑一次 BCrypt 校验（对固定哈希），让响应耗时与真实校验接近。
+			// 仅统一错误文案是不够的：BCrypt 明显慢于直接返回，耗时会泄露账号是否存在。
+			BCrypt.checkpw(username, TIMING_DUMMY_HASH);
+			return Result.error(LOGIN_FAIL_MESSAGE);
 		}
+
 		String md5 = SaSecureUtil.md5(username + ":" + password);
-		loginStatus = BCrypt.checkpw(md5, user.getPassword());
-		//redisUtils.delete(key);
-		//TODO 登录日志
-		if(loginStatus) {
+		if(BCrypt.checkpw(md5, user.getPassword())) {
 			Map<String, Object> userMap = userInfo(user);
 			StpUtil.login(username, SaLoginConfig.setExtraData(userMap));
 			SaTokenInfo saTokenInfo = StpUtil.getTokenInfo();
@@ -104,7 +110,31 @@ public class SysLoginController {
 			result.put("userInfo", userMap);
 			return Result.ok("登录成功", result);
 		}
-		return Result.error("用户名或密码错误！");
+		return Result.error(LOGIN_FAIL_MESSAGE);
+	}
+
+	/**
+	 * 校验验证码，无论成功与否都会消费掉 Redis 中的验证码（一次性）。
+	 *
+	 * @return 校验通过返回 null；否则返回给前端的错误提示
+	 */
+	private String verifyCaptcha(String checkKey, String captcha) {
+		if (StringUtils.isBlank(checkKey)) {
+			return "验证码已失效，请刷新后重试";
+		}
+		if (StringUtils.isBlank(captcha)) {
+			return "请输入验证码";
+		}
+		// 生成时以 md5(checkKey:code) 作为 key、以小写 code 作为值写入，此处用用户输入重算 key
+		String input = captcha.trim().toLowerCase();
+		String key = SecureUtil.md5(checkKey + ":" + input);
+		String stored = redisUtils.get(key);
+		// 先消费再判定：防止同一验证码被反复尝试
+		redisUtils.delete(key);
+		if (stored == null || !stored.equals(input)) {
+			return "验证码错误";
+		}
+		return null;
 	}
 
 	public Map<String,Object> userInfo(SysUser user) {
@@ -122,12 +152,13 @@ public class SysLoginController {
 		if(StringUtils.isEmpty(token)) {
 			return Result.error("退出登录失败！");
 		}
-		String username = StpUtil.getExtra(token, "username").toString();
+		Object usernameExtra = StpUtil.getExtra(token, "username");
+		if (usernameExtra == null) {
+			return Result.error("Token无效!");
+		}
+		String username = usernameExtra.toString();
 		SysUser sysUser = userService.queryByUserName(username);
 		if(sysUser!=null) {
-			//update-begin--Author:wangshuai  Date:20200714  for：登出日志没有记录人员
-			//logService.addLog("用户名: "+sysUser.getRealname()+",退出成功！", CommonConstant.LOG_TYPE_1, null,sysUser);
-			//update-end--Author:wangshuai  Date:20200714  for：登出日志没有记录人员
 			log.info(" 用户名:  "+sysUser.getRealname()+",退出成功！ ");
 			StpUtil.logoutByTokenValue(token);
 			return Result.ok("退出登录成功！");
@@ -141,13 +172,18 @@ public class SysLoginController {
 	 * 验证码
 	 */
 	@GetMapping("/captcha")
-	public Result<?> captcha(HttpServletResponse response, String checkKey)throws IOException {
+	public Result<?> captcha(String checkKey) {
+		if (StringUtils.isBlank(checkKey)) {
+			// checkKey 为空会让 key 退化成 md5("null:code")，所有不带 key 的客户端共用同一键空间
+			return Result.error("缺少 checkKey");
+		}
 		LineCaptcha captcha = CaptchaUtil.createLineCaptcha(200, 100);
-		String verCode = captcha.getCode();
+		// 统一按小写存储：Hutool 生成的验证码含大小写字母，而校验时按小写比对，
+		// 若此处存原始大小写，凡是含大写字母的验证码都会校验失败（表现为偶发登录失败）。
+		String verCode = captcha.getCode().toLowerCase();
 
-		String key = SecureUtil.md5(checkKey + ":" + verCode.toLowerCase());
-		// 30分钟
-		redisUtils.set(key, verCode, 30 * 60);
+		String key = SecureUtil.md5(checkKey + ":" + verCode);
+		redisUtils.set(key, verCode, CAPTCHA_EXPIRE_SECONDS);
 		return Result.ok(captcha.getImageBase64());
 	}
 }

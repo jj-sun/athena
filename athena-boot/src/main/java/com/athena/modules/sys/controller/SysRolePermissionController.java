@@ -1,5 +1,6 @@
 package com.athena.modules.sys.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.athena.common.utils.Result;
 import com.athena.modules.sys.dto.SysRolePermissionDto;
 import com.athena.modules.sys.service.SysRolePermissionService;
@@ -22,6 +23,7 @@ public class SysRolePermissionController {
     private SysRolePermissionService rolePermissionService;
 
     @PostMapping(value = "saveBatch")
+    @SaCheckPermission("sys:role:update")
     public Result<Object> saveBatch(@RequestBody SysRolePermissionDto rolePermissionDto) {
         List<String> roleIds = Lists.newArrayList(rolePermissionDto.getRoleId());
         rolePermissionService.deleteBatch(roleIds);
@@ -30,6 +32,7 @@ public class SysRolePermissionController {
     }
 
     @GetMapping(value = "getPermissionIdList")
+    @SaCheckPermission("sys:role:info")
     public Result<Object> getPermissionIdList(@RequestParam(name = "roleId") String roleId) {
         List<String> permissionIds = rolePermissionService.queryPermissionIdList(roleId);
         return Result.ok(permissionIds);

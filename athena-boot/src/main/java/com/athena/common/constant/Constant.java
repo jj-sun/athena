@@ -34,6 +34,13 @@ public class Constant {
     public static final String ASC = "asc";
 
     /**
+     * 每页最大记录数。
+     * 用于防止客户端传入超大 pageSize 一次性拖走整张表（数据批量泄露）。
+     * Query.getPage 与 MybatisPlusConfig 的分页插件均以此为准，改这里即可同时生效。
+     */
+    public static final long MAX_PAGE_SIZE = 1000L;
+
+    /**
      * 字典翻译文本后缀
      */
     public static final String DICT_TEXT_SUFFIX = "_dictText";

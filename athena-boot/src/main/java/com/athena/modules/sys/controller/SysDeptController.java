@@ -1,5 +1,6 @@
 package com.athena.modules.sys.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.athena.common.annotation.Log;
 import com.athena.common.utils.Result;
 import com.athena.common.validator.ValidatorUtils;
@@ -30,7 +31,7 @@ public class SysDeptController {
      * 所有部门列表树
      */
     @GetMapping("/list")
-    //@PreAuthorize("hasAuthority('sys:user:list')")
+    @SaCheckPermission("sys:dept:list")
     public Result<List<SysDept>> list(SysDept dept){
         List<SysDept> deptTreeList = deptService.deptTreeList();
         return Result.ok(deptTreeList);
@@ -40,7 +41,7 @@ public class SysDeptController {
      * 选择菜单(添加、修改菜单)
      */
     @GetMapping("/select")
-    //@PreAuthorize("hasAuthority('sys:menu:select')")
+    @SaCheckPermission("sys:dept:select")
     public Result<List<SysDeptTree>> select(){
         //查询列表数据
         List<SysDeptTree> menuList = deptService.treeSelect();
@@ -52,7 +53,7 @@ public class SysDeptController {
      * 部门信息
      */
     @GetMapping("/info/{id}")
-    //@PreAuthorize("hasAuthority('sys:user:info')")
+    @SaCheckPermission("sys:dept:info")
     public Result<SysDept> info(@PathVariable("id") String id){
         SysDept dept = deptService.getById(id);
 
@@ -64,7 +65,7 @@ public class SysDeptController {
      */
     @Log("保存部门")
     @PostMapping("/save")
-    //@PreAuthorize("hasAuthority('sys:user:save')")
+    @SaCheckPermission("sys:dept:save")
     public Result<Object> save(@RequestBody SysDept dept){
         ValidatorUtils.validateEntity(dept, AddGroup.class);
 
@@ -78,7 +79,7 @@ public class SysDeptController {
      */
     @Log("修改部门")
     @PutMapping("/update")
-    //@PreAuthorize("hasAuthority('sys:user:update')")
+    @SaCheckPermission("sys:dept:update")
     public Result<Object> update(@RequestBody SysDept dept){
         ValidatorUtils.validateEntity(dept, UpdateGroup.class);
 
@@ -91,7 +92,7 @@ public class SysDeptController {
      */
     @Log("删除部门")
     @DeleteMapping("/delete")
-    //@PreAuthorize("hasAuthority('sys:user:delete')")
+    @SaCheckPermission("sys:dept:delete")
     public Result<Object> delete(@RequestParam(name = "id") String id){
 
         deptService.removeById(id);
@@ -100,6 +101,7 @@ public class SysDeptController {
 
     @Log("批量删除部门")
     @DeleteMapping("/deleteBatch")
+    @SaCheckPermission("sys:dept:delete")
     public Result<Object> deleteBatch(@RequestParam(name = "ids") String ids) {
         deptService.deleteBatch(Arrays.asList(ids.split(",")));
         return Result.ok();

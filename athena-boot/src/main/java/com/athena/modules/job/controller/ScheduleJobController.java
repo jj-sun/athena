@@ -1,5 +1,6 @@
 package com.athena.modules.job.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.athena.common.annotation.Log;
 import com.athena.common.base.dto.PageDto;
 import com.athena.common.utils.PageUtils;
@@ -28,7 +29,7 @@ public class ScheduleJobController {
 	 * 定时任务列表
 	 */
 	@GetMapping("/list")
-	//@RequiresPermissions("sys:schedule:list")
+	@SaCheckPermission("sys:schedule:list")
 	public Result<PageUtils> list(ScheduleJob scheduleJob, PageDto pageDto){
 		PageUtils page = scheduleJobService.queryPage(scheduleJob, pageDto);
 
@@ -39,7 +40,7 @@ public class ScheduleJobController {
 	 * 定时任务信息
 	 */
 	@GetMapping("/info/{jobId}")
-	//@RequiresPermissions("sys:schedule:info")
+	@SaCheckPermission("sys:schedule:info")
 	public Result<ScheduleJob> info(@PathVariable("jobId") Long jobId){
 		ScheduleJob schedule = scheduleJobService.getById(jobId);
 		
@@ -50,6 +51,7 @@ public class ScheduleJobController {
 	 * 获取可用的定时任务 Bean 列表
 	 */
 	@GetMapping("/taskBeanList")
+	@SaCheckPermission("sys:schedule:list")
 	public Result<List<Map<String, Object>>> taskBeanList(@RequestParam(name = "excludeId", required = false) String excludeId) {
 		List<Map<String, Object>> list = scheduleJobService.getTaskBeanList(excludeId);
 		return Result.ok(list);
@@ -60,7 +62,7 @@ public class ScheduleJobController {
 	 */
 	@Log("保存定时任务")
 	@PostMapping("/save")
-	//@RequiresPermissions("sys:schedule:save")
+	@SaCheckPermission("sys:schedule:save")
 	public Result<Object> save(@RequestBody ScheduleJob scheduleJob){
 		ValidatorUtils.validateEntity(scheduleJob);
 		
@@ -74,7 +76,7 @@ public class ScheduleJobController {
 	 */
 	@Log("修改定时任务")
 	@PutMapping("/update")
-	//@RequiresPermissions("sys:schedule:update")
+	@SaCheckPermission("sys:schedule:update")
 	public Result<Object> update(@RequestBody ScheduleJob scheduleJob){
 		ValidatorUtils.validateEntity(scheduleJob);
 				
@@ -88,7 +90,7 @@ public class ScheduleJobController {
 	 */
 	@Log("删除定时任务")
 	@DeleteMapping("/delete")
-	//@RequiresPermissions("sys:schedule:delete")
+	@SaCheckPermission("sys:schedule:delete")
 	public Result<Object> delete(@RequestParam(name = "id") String id){
 		scheduleJobService.deleteBatch(List.of(id));
 		return Result.ok();
@@ -98,7 +100,7 @@ public class ScheduleJobController {
 	 */
 	@Log("批量删除定时任务")
 	@DeleteMapping("/deleteBatch")
-	//@RequiresPermissions("sys:schedule:delete")
+	@SaCheckPermission("sys:schedule:delete")
 	public Result<Object> deleteBatch(@RequestParam(name = "ids") String ids){
 		scheduleJobService.deleteBatch(List.of(ids.split(",")));
 		return Result.ok();
@@ -109,7 +111,7 @@ public class ScheduleJobController {
 	 */
 	@Log("立即执行任务")
 	@GetMapping("/run")
-	//@RequiresPermissions("sys:schedule:run")
+	@SaCheckPermission("sys:schedule:run")
 	public Result<Object> run(@RequestParam(name = "id") String id){
 		scheduleJobService.run(List.of(id));
 		
@@ -121,7 +123,7 @@ public class ScheduleJobController {
 	 */
 	@Log("暂停定时任务")
 	@GetMapping("/pause")
-	//@RequiresPermissions("sys:schedule:pause")
+	@SaCheckPermission("sys:schedule:update")
 	public Result<Object> pause(@RequestParam(name = "id") String id){
 		scheduleJobService.pause(List.of(id));
 		
@@ -133,7 +135,7 @@ public class ScheduleJobController {
 	 */
 	@Log("恢复定时任务")
 	@GetMapping("/resume")
-	//@RequiresPermissions("sys:schedule:resume")
+	@SaCheckPermission("sys:schedule:update")
 	public Result<Object> resume(@RequestParam(name = "id") String id){
 		scheduleJobService.resume(List.of(id));
 		

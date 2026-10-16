@@ -17,49 +17,65 @@ import java.util.Objects;
  */
 public class Query<T> {
 
+    private static final long DEFAULT_PAGE_SIZE = 10L;
+
+    /**
+     * 只分页，不指定默认排序。
+     */
     public IPage<T> getPage(PageDto pageDto) {
-        //分页参数
-        long curPage = 1;
-        long limit = 10;
+        return buildPage(pageDto, null, false);
+    }
 
+    /**
+     * 分页 + 默认排序。
+     *
+     * <p>默认排序字段由调用方以服务端常量传入，不再从请求参数读取 —— 原实现把
+     * {@code pageDto.defaultOrderField} 直接拼进 ORDER BY 且不做任何校验，构成 SQL 注入入口，
+     * 而该字段实际从未被前端使用。
+     *
+     * @param pageDto           分页参数（page / pageSize / sidx / order 均来自客户端）
+     * @param defaultOrderField 默认排序字段，可为 null；必须由服务端代码提供，不得来自请求
+     * @param asc               默认排序是否升序
+     */
+    public IPage<T> getPage(PageDto pageDto, String defaultOrderField, boolean asc) {
+        return buildPage(pageDto, defaultOrderField, asc);
+    }
 
-        if(Objects.nonNull(pageDto.getPage())) {
+    private IPage<T> buildPage(PageDto pageDto, String defaultOrderField, boolean asc) {
+        // 分页参数（做上下界钳制，防止页码为负或 pageSize 过大导致整表拖取）
+        long curPage = 1L;
+        long limit = DEFAULT_PAGE_SIZE;
+
+        if (Objects.nonNull(pageDto) && Objects.nonNull(pageDto.getPage()) && pageDto.getPage() > 0) {
             curPage = pageDto.getPage();
         }
-        if(Objects.nonNull(pageDto.getPageSize())) {
-            limit = pageDto.getPageSize();
+        if (Objects.nonNull(pageDto) && Objects.nonNull(pageDto.getPageSize()) && pageDto.getPageSize() > 0) {
+            limit = Math.min(pageDto.getPageSize(), Constant.MAX_PAGE_SIZE);
         }
 
-        //分页对象
         Page<T> page = new Page<>(curPage, limit);
 
-        //排序字段
-        //防止SQL注入（因为sidx、order是通过拼接SQL实现排序的，会有SQL注入风险）
-        String orderField = SQLFilter.sqlInject(pageDto.getSidx());
-        String order = pageDto.getOrder();
+        // 前端字段排序：sidx 走白名单校验，order 只用于在 ASC / DESC 两个字面量之间选择
+        String orderField = pageDto == null ? null : SQLFilter.requireOrderField(pageDto.getSidx());
+        String order = pageDto == null ? null : pageDto.getOrder();
 
-
-        //前端字段排序
-        if(StringUtils.isNotEmpty(orderField) && StringUtils.isNotEmpty(order)){
-            if(Constant.ASC.equalsIgnoreCase(order)) {
-                return  page.addOrder(OrderItem.asc(orderField));
-            }else {
-                return page.addOrder(OrderItem.desc(orderField));
+        if (StringUtils.isNotEmpty(orderField) && StringUtils.isNotEmpty(order)) {
+            if (Constant.ASC.equalsIgnoreCase(order)) {
+                return page.addOrder(OrderItem.asc(orderField));
             }
+            return page.addOrder(OrderItem.desc(orderField));
         }
 
-        //没有排序字段，则不排序
-        if(StringUtils.isBlank(pageDto.getDefaultOrderField())){
+        // 没有指定排序字段时，使用调用方给定的默认排序
+        String safeDefault = SQLFilter.requireOrderField(defaultOrderField);
+        if (StringUtils.isBlank(safeDefault)) {
             return page;
         }
-
-        //默认排序
-        if(pageDto.isAsc()) {
-            page.addOrder(OrderItem.asc(pageDto.getDefaultOrderField()));
-        }else {
-            page.addOrder(OrderItem.desc(pageDto.getDefaultOrderField()));
+        if (asc) {
+            page.addOrder(OrderItem.asc(safeDefault));
+        } else {
+            page.addOrder(OrderItem.desc(safeDefault));
         }
-
         return page;
     }
 }

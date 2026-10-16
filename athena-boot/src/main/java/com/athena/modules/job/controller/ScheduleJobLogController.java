@@ -1,5 +1,6 @@
 package com.athena.modules.job.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.athena.common.base.dto.PageDto;
 import com.athena.common.utils.PageUtils;
 import com.athena.common.utils.Result;
@@ -26,7 +27,7 @@ public class ScheduleJobLogController {
 	 * 定时任务日志列表
 	 */
 	@GetMapping("/list")
-	//@RequiresPermissions("sys:schedule:log")
+	@SaCheckPermission("sys:schedule:log")
 	public Result<PageUtils> list(ScheduleJobLog scheduleJobLog, PageDto pageDto){
 		PageUtils page = scheduleJobLogService.queryPage(scheduleJobLog, pageDto);
 		
@@ -37,6 +38,7 @@ public class ScheduleJobLogController {
 	 * 定时任务日志信息
 	 */
 	@GetMapping("/info/{logId}")
+	@SaCheckPermission("sys:schedule:log")
 	public Result<ScheduleJobLog> info(@PathVariable("logId") Long logId){
 		ScheduleJobLog log = scheduleJobLogService.getById(logId);
 		return Result.ok(log);
