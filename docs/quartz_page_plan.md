@@ -21,7 +21,7 @@
 | beanName | String | Spring Bean 名称 |
 | parameter | String | 任务参数 |
 | cronExpression | String | Cron 表达式 |
-| status | Integer | 任务状态（0=暂停，1=正常） |
+| status | Integer | 任务状态（0=正常，1=暂停） |
 | remark | String | 备注 |
 | delFlag | Integer | 删除标记（BasePo，@Dict(dicCode="del_flag")） |
 | ctime | Date | 创建时间（BasePo） |
@@ -50,7 +50,7 @@ export interface SysScheduleJob {
   beanName: string;
   parameter?: string;
   cronExpression: string;
-  status: number;       // 0=暂停, 1=正常
+  status: number;       // 0=正常, 1=暂停
   remark?: string;
   delFlag?: number;
   ctime?: string;
@@ -110,7 +110,7 @@ export interface SysScheduleJob {
 ## 五、注意事项
 
 - 页面参照 `user-list.vue` 模式，使用命名列插槽（`#colKey="{ row }"`）
-- `status` 字段：0=暂停，1=正常，使用 `t-tag` 组件展示
+- `status` 字段：0=正常，1=暂停，使用 `t-tag` 组件展示
 - 操作按钮需根据任务状态动态显示：暂停状态显示"恢复"，正常状态显示"暂停"
 - 暂停/恢复/执行操作使用 GET 请求，操作完成后刷新列表
 - `deleteBatch` 接口参数格式为 `ids=1,2,3`（逗号分隔）

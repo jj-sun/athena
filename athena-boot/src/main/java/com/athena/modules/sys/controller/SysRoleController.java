@@ -10,6 +10,7 @@ import com.athena.common.utils.Result;
 import com.athena.common.validator.ValidatorUtils;
 import com.athena.modules.sys.entity.SysRole;
 import com.athena.modules.sys.entity.SysUser;
+import com.athena.modules.sys.service.PrivilegeGuardService;
 import com.athena.modules.sys.service.SysRoleService;
 import com.athena.modules.sys.service.SysUserRoleService;
 import com.athena.modules.sys.service.SysUserService;
@@ -39,6 +40,8 @@ public class SysRoleController extends AbstractController {
 	private SysUserRoleService sysUserRoleService;
 	@Autowired
 	private SysUserService sysUserService;
+	@Autowired
+	private PrivilegeGuardService privilegeGuard;
 
 	/**
 	 * 角色列表
@@ -85,7 +88,8 @@ public class SysRoleController extends AbstractController {
 	@SaCheckPermission("sys:role:save")
 	public Result<Object> save(@RequestBody SysRole role){
 		ValidatorUtils.validateEntity(role);
-		
+		privilegeGuard.checkRoleCodeAssignable(role.getRoleCode());
+
 		sysRoleService.save(role);
 		
 		return Result.ok();
@@ -99,7 +103,9 @@ public class SysRoleController extends AbstractController {
 	@SaCheckPermission("sys:role:update")
 	public Result<Object> update(@RequestBody SysRole role){
 		ValidatorUtils.validateEntity(role);
-		
+		privilegeGuard.checkRoleManageable(role.getId());
+		privilegeGuard.checkRoleCodeAssignable(role.getRoleCode());
+
 		sysRoleService.updateById(role);
 		
 		return Result.ok();
@@ -112,6 +118,7 @@ public class SysRoleController extends AbstractController {
 	@DeleteMapping("/delete")
 	@SaCheckPermission("sys:role:delete")
 	public Result<Object> delete(@RequestParam(name = "id") String id){
+		privilegeGuard.checkRoleManageable(id);
 		sysRoleService.deleteEntity(id);
 		return Result.ok();
 	}
@@ -120,7 +127,11 @@ public class SysRoleController extends AbstractController {
 	@DeleteMapping("/deleteBatch")
 	@SaCheckPermission("sys:role:delete")
 	public Result<Object> deleteBatch(@RequestParam(name = "ids") String ids) {
-		sysRoleService.deleteBatch(Arrays.asList(ids.split(",")));
+		List<String> idList = Arrays.asList(ids.split(","));
+		for (String id : idList) {
+			privilegeGuard.checkRoleManageable(id);
+		}
+		sysRoleService.deleteBatch(idList);
 		return Result.ok();
 	}
 
@@ -156,6 +167,7 @@ public class SysRoleController extends AbstractController {
 		if (roleId == null || userIdList == null || userIdList.isEmpty()) {
 			return Result.error("参数不完整");
 		}
+		privilegeGuard.checkCanAddUsers(roleId, userIdList);
 		for (String userId : userIdList) {
 			sysUserRoleService.saveUserRole(userId, roleId);
 		}
@@ -169,6 +181,7 @@ public class SysRoleController extends AbstractController {
 	@DeleteMapping("/removeUser")
 	@SaCheckPermission("sys:role:update")
 	public Result<Object> removeUser(@RequestParam("roleId") String roleId, @RequestParam("userId") String userId){
+		privilegeGuard.checkCanRemoveUser(roleId);
 		sysUserRoleService.deleteUserRole(userId, roleId);
 		return Result.ok();
 	}

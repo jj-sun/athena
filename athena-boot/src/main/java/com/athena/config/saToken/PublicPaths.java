@@ -27,16 +27,16 @@ public final class PublicPaths {
     /**
      * 静态资源。前端通过 URL 直接引用这些资源时不会携带 token。
      *
-     * <p>注意 {@code /**.html} 与 {@code /**.pdf}：这两个后缀通配是列表里最宽的口子 ——
-     * 将来若有 Controller 映射到以 {@code .html} 结尾的路径，会被静默放行。当前没有这类映射
-     * （{@code /doc.html} 由 API_DOCS 单独列出），故沿用现状以避免回归；若要收窄，需先实测
-     * Sa-Token 的路由匹配语义（可用一次免登录 {@code GET /athena/x.html} 探针确认）。
+     * <p><b>刻意不包含 {@code /**.html}</b>：Knife4j 的 UI 页面（{@code /doc.html}）是随
+     * knife4j-openapi3-ui 的 jar 以静态资源形式提供的，即使 {@code knife4j.enable=false}、
+     * springdoc 已关闭，该 HTML 外壳仍会被服务出来。之前 {@code /**.html} 在免登录白名单里，
+     * 导致生产环境仍能匿名打开文档页面（实测确认）。移除该通配后：dev 环境由 {@link #API_DOCS}
+     * 在 {@code expose-api-docs=true} 时单独放行，生产环境则要求登录，文档页面不再公开。
      */
     private static final List<String> STATIC_RESOURCES = List.of(
             "/favicon.ico",
             "/**.js",
             "/**.css",
-            "/**.html",
             "/**.svg",
             "/**.pdf",
             "/**.jpg",

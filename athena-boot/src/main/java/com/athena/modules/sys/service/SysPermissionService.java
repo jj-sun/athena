@@ -47,4 +47,10 @@ public interface SysPermissionService extends IService<SysPermission> {
 	 */
 	void delete(String permissionId);
 
+	/**
+	 * 所有角色强制拥有的菜单 ID（仪表盘目录 + 概览首页，不含统计报表等其他页面）。
+	 * 即使角色没有分配任何其他菜单，登录后也必须能进入仪表盘首页。
+	 */
+	List<String> getMandatoryMenuIds();
+
 }

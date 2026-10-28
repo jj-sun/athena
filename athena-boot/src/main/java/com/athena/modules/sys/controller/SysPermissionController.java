@@ -4,7 +4,9 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.athena.common.annotation.Log;
 import com.athena.common.constant.Constant;
 import com.athena.common.exception.RRException;
+import com.athena.common.utils.PermissionCodeUtils;
 import com.athena.common.utils.Result;
+import com.athena.common.utils.WebInputSafetyUtils;
 import com.athena.modules.sys.entity.SysPermission;
 import com.athena.modules.sys.service.SecurityService;
 import com.athena.modules.sys.service.SysPermissionService;
@@ -116,7 +118,7 @@ public class SysPermissionController extends AbstractController {
 
 		//判断是否有子菜单或按钮
 		List<SysPermission> menuList = sysPermissionService.queryListParentId(id);
-		if(menuList.size() > 0){
+		if(!menuList.isEmpty()){
 			return Result.error("请先删除子菜单或按钮");
 		}
 
@@ -126,12 +128,45 @@ public class SysPermissionController extends AbstractController {
 	}
 	
 	/**
+	 * 修改菜单时校验父节点不能是自己或自己的下级。
+	 */
+	private void verifyNoCycle(SysPermission menu){
+		if(StringUtils.isBlank(menu.getId())){
+			return;
+		}
+		java.util.Set<String> visited = new java.util.HashSet<>();
+		String parentId = menu.getParentId();
+		while(StringUtils.isNotBlank(parentId) && !Constant.TREE_ROOT.equals(parentId) && visited.add(parentId)){
+			if(parentId.equals(menu.getId())){
+				throw new RRException("上级菜单不能是自己或自己的下级");
+			}
+			SysPermission parent = sysPermissionService.getById(parentId);
+			if(parent == null){
+				throw new RRException("上级菜单不存在");
+			}
+			parentId = parent.getParentId();
+		}
+	}
+
+	/**
 	 * 验证参数是否正确
 	 */
 	private void verifyForm(SysPermission menu){
 		if(StringUtils.isBlank(menu.getName())){
 			throw new RRException("菜单名称不能为空");
 		}
+		if(menu.getType() == null){
+			throw new RRException("菜单类型不能为空");
+		}
+
+		// 权限标识不允许包含通配符（"*" 会被 Sa-Token 当作匹配一切），
+		// 否则任何能编辑菜单的人都能造出一个"超级权限"节点。
+		PermissionCodeUtils.validatePerms(menu.getPerms());
+
+		// frameSrc 会进入 <iframe :src>，icon 会进入 <component :is>：
+		// 只允许 http/https 与合法图标名，阻断 javascript:/data: 等注入。
+		WebInputSafetyUtils.validateFrameSrc(menu.getFrameSrc());
+		WebInputSafetyUtils.validateIcon(menu.getIcon());
 		
 		if(org.apache.commons.lang3.StringUtils.isBlank(menu.getParentId())){
 			menu.setParentId(Constant.TREE_ROOT);
@@ -147,7 +182,12 @@ public class SysPermissionController extends AbstractController {
 		//上级菜单类型
 		int parentType = Constant.MenuType.CATALOG.getValue();
 		if(!menu.getParentId().equals("0")){
+			// 修改时不能把父节点设为自己或自己的下级，否则节点会从树中消失
+			verifyNoCycle(menu);
 			SysPermission parentMenu = sysPermissionService.getById(menu.getParentId());
+			if(parentMenu == null){
+				throw new RRException("上级菜单不存在");
+			}
 			parentType = parentMenu.getType();
 		}
 		

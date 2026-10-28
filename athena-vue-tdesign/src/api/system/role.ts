@@ -47,7 +47,7 @@ export function deleteRoleBatch(ids: Array<string>) {
   return DELETE(`${roleApi.deleteBatch}?ids=${ids.join(',')}`);
 }
 export function getPermissionIdList(roleId: string) {
-  return GET(`${roleApi.getPermissionIdList}?roleId=${roleId}`);
+  return GET<string[]>(`${roleApi.getPermissionIdList}?roleId=${roleId}`);
 }
 
 export function getRoleUserList(params: { roleId: string; page: number; pageSize: number }) {

@@ -2,6 +2,7 @@ package com.athena.modules.sys.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.athena.common.annotation.Log;
+import com.athena.common.exception.RRException;
 import com.athena.common.utils.Result;
 import com.athena.common.validator.ValidatorUtils;
 import com.athena.common.validator.group.AddGroup;
@@ -9,6 +10,7 @@ import com.athena.common.validator.group.UpdateGroup;
 import com.athena.modules.sys.entity.SysDept;
 import com.athena.modules.sys.service.SysDeptService;
 import com.athena.modules.sys.vo.SysDeptTree;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -68,6 +70,10 @@ public class SysDeptController {
     @SaCheckPermission("sys:dept:save")
     public Result<Object> save(@RequestBody SysDept dept){
         ValidatorUtils.validateEntity(dept, AddGroup.class);
+        if (StringUtils.isBlank(dept.getParentId())) {
+            throw new RRException("上级部门不能为空");
+        }
+        deptService.validateParent(null, dept.getParentId());
 
         deptService.save(dept);
 
@@ -82,6 +88,7 @@ public class SysDeptController {
     @SaCheckPermission("sys:dept:update")
     public Result<Object> update(@RequestBody SysDept dept){
         ValidatorUtils.validateEntity(dept, UpdateGroup.class);
+        deptService.validateParent(dept.getId(), dept.getParentId());
 
         deptService.updateById(dept);
         return Result.ok();
@@ -95,7 +102,8 @@ public class SysDeptController {
     @SaCheckPermission("sys:dept:delete")
     public Result<Object> delete(@RequestParam(name = "id") String id){
 
-        deptService.removeById(id);
+        // 复用批量删除的校验：有子部门时拒绝删除
+        deptService.deleteBatch(List.of(id));
         return Result.ok();
     }
 

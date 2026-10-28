@@ -3,7 +3,7 @@
     <t-card>
       <table-header :table-columns="tableColumns" :show-message="false" @do-refresh="loadData">
         <template #action>
-          <t-button theme="primary" @click="onAdd">
+          <t-button v-permission="'sys:menu:save'" theme="primary" @click="onAdd">
             <template #icon><plus-icon /></template>
             新增
           </t-button>
@@ -28,12 +28,23 @@
           <t-tag v-else-if="row.frameBlank === 1" theme="warning" size="small">内链</t-tag>
         </template>
         <template #icon="{ row }">
-          <component :is="row.icon || 'MenuIcon'" style="font-size: 18px" />
+          <t-icon v-if="row.icon" :name="row.icon" style="font-size: 18px" />
+          <span v-else>-</span>
         </template>
         <template #actions="{ row }">
           <t-space>
-            <t-button theme="primary" ghost size="small" @click="onEdit(row)">编辑</t-button>
-            <t-button theme="danger" ghost size="small" @click="onDelete(row)">删除</t-button>
+            <t-button
+              v-permission="['sys:menu:info', 'sys:menu:update']"
+              theme="primary"
+              ghost
+              size="small"
+              @click="onEdit(row)"
+            >
+              编辑
+            </t-button>
+            <t-button v-permission="'sys:menu:delete'" theme="danger" ghost size="small" @click="onDelete(row)">
+              删除
+            </t-button>
           </t-space>
         </template>
       </t-enhanced-table>
@@ -87,7 +98,7 @@
             <t-input v-model:value="formData.perms" placeholder="请输入权限标识" />
           </t-form-item>
           <t-form-item label="菜单图标" name="icon">
-            <t-input v-model:value="formData.icon" placeholder="请输入图标名称" />
+            <icon-picker v-model="formData.icon" placeholder="请选择菜单图标" />
           </t-form-item>
           <t-form-item label="排序" name="orderNum">
             <t-input-number v-model:value="formData.orderNum" />
@@ -104,6 +115,7 @@ import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
 import { onMounted, reactive, ref, useTemplateRef } from 'vue';
 
 import { deleteMenu, getMenuInfo, getMenuList, saveMenu, updateMenu } from '@/api/system/permission';
+import IconPicker from '@/components/icon-picker/index.vue';
 import ModalDialog from '@/components/ModalDialog.vue';
 import TableHeader from '@/components/table/TableHeader.vue';
 import { useColumnControllerConfig, useRowKey, useTable, useTableColumn } from '@/hooks/table';
@@ -216,7 +228,7 @@ function onAdd() {
   actionModel.value = 'add';
   Object.assign(formData, {
     id: '',
-    parentId: '', // 默认为 0，如果不是一级菜单，则需要选择
+    parentId: '0', // 目录默认为根节点，菜单/按钮需选择上级
     name: '',
     url: '',
     component: '',
@@ -242,7 +254,7 @@ function onEdit(item: SysPermission) {
         url: menu.url || '',
         component: menu.component || '',
         frameSrc: menu.frameSrc || '',
-        frameBlank: menu.frameBlank || null,
+        frameBlank: menu.frameBlank ?? null,
         redirect: menu.redirect || '',
         perms: menu.perms || '',
         type: menu.type,
@@ -281,6 +293,10 @@ async function onConfirm() {
     void MessagePlugin.error('请输入权限标识');
     return;
   }
+  if (formData.type === 2 && (!formData.parentId || formData.parentId === '0')) {
+    void MessagePlugin.error('按钮必须选择上级菜单');
+    return;
+  }
 
   try {
     if (actionModel.value === 'add') {
@@ -293,7 +309,7 @@ async function onConfirm() {
     modalDialogRef.value?.close();
     loadData();
   } catch (error: any) {
-    void MessagePlugin.error(error?.response?.data?.msg || '操作失败');
+    void MessagePlugin.error(error?.message || '操作失败');
   }
 }
 

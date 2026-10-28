@@ -121,7 +121,7 @@ spring:
         allow: 127.0.0.1
         reset-enable: false
         login-username: druid
-        login-password: druid
+        login-password: Admin@4728
       filter:
         stat:
           log-slow-sql: true
@@ -148,12 +148,14 @@ knife4j:
     # （测试与生产已通过 knife4j.enable: false 整体关闭）。
     enable: true
     username: admin
-    password: admin
+    password: Admin@3721
 athena:
   security:
     # 仅开发环境放开接口文档路径（/doc.html、/v3/api-docs 等）。
     # 测试/生产为 false，且对应端点已在 application-{test,prod}.yml 中整体关闭。
     expose-api-docs: true
+    # 本地直连后端，不经过反向代理：不信任任何转发头（X-Forwarded-For 会被忽略）。
+    trusted-proxies:
 logging:
   level:
     com.athena.modules.system.mapper: info

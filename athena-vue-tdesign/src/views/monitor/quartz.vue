@@ -1,6 +1,6 @@
 <template>
   <div class="main-container">
-    <table-search @search="loadData" @reset-search="resetSearch">
+    <table-search @search="onSearch" @reset-search="resetSearch">
       <template #search-content>
         <t-col :span="3">
           <t-form-item label="任务名称" style="width: 100%">
@@ -25,12 +25,12 @@
         @clear-selected="onClearSelected"
       >
         <template #action>
-          <t-button theme="primary" @click="onAdd">
+          <t-button v-permission="'sys:schedule:save'" theme="primary" @click="onAdd">
             <template #icon><plus-icon /></template>
             新增
           </t-button>
           <t-dropdown>
-            <t-button>
+            <t-button v-permission="'sys:schedule:delete'">
               批量操作
               <template #suffix><more-icon /></template>
             </t-button>
@@ -61,15 +61,75 @@
         </template>
         <template #actions="{ row }">
           <t-space>
-            <t-button theme="primary" ghost size="small" @click="onEdit(row)">编辑</t-button>
-            <t-button theme="danger" ghost size="small" @click="onDelete(row)">删除</t-button>
-            <t-button theme="primary" ghost size="small" @click="onRun(row)">立即执行</t-button>
-            <t-button v-if="row.status === 0" theme="warning" ghost size="small" @click="onPause(row)"> 暂停 </t-button>
-            <t-button v-else theme="success" ghost size="small" @click="onResume(row)"> 恢复 </t-button>
+            <t-button
+              v-permission="['sys:schedule:info', 'sys:schedule:update']"
+              theme="primary"
+              ghost
+              size="small"
+              @click="onEdit(row)"
+            >
+              编辑
+            </t-button>
+            <t-button v-permission="'sys:schedule:delete'" theme="danger" ghost size="small" @click="onDelete(row)">
+              删除
+            </t-button>
+            <t-button v-permission="'sys:schedule:run'" theme="primary" ghost size="small" @click="onRun(row)">
+              立即执行
+            </t-button>
+            <t-button
+              v-if="row.status === 0"
+              v-permission="'sys:schedule:update'"
+              theme="warning"
+              ghost
+              size="small"
+              @click="onPause(row)"
+            >
+              暂停
+            </t-button>
+            <t-button
+              v-else
+              v-permission="'sys:schedule:update'"
+              theme="success"
+              ghost
+              size="small"
+              @click="onResume(row)"
+            >
+              恢复
+            </t-button>
+            <t-button v-permission="'sys:schedule:log'" theme="primary" ghost size="small" @click="onShowLogs(row)">
+              日志
+            </t-button>
           </t-space>
         </template>
       </t-table>
     </t-card>
+
+    <modal-drawer ref="logDrawerRef" title="任务日志" size="large" @confirm="onLogDrawerConfirm">
+      <template #content>
+        <div v-if="currentLogJob">
+          <div class="log-toolbar">
+            任务：<strong>{{ currentLogJob.beanName }}</strong>
+          </div>
+          <t-table
+            :loading="logLoading"
+            :data="logList"
+            :columns="logColumns"
+            :pagination="logPagination"
+            :disable-data-page="true"
+            row-key="id"
+            size="small"
+          >
+            <template #status="{ row }">
+              <t-tag v-if="row.status === 0" theme="success" size="small">成功</t-tag>
+              <t-tag v-else theme="danger" size="small">失败</t-tag>
+            </template>
+            <template #times="{ row }">{{ row.times ?? '-' }} ms</template>
+            <template #error="{ row }">{{ row.error || '-' }}</template>
+            <template #ctime="{ row }">{{ row.ctime || '-' }}</template>
+          </t-table>
+        </div>
+      </template>
+    </modal-drawer>
 
     <modal-dialog ref="modalDialogRef" :title="actionTitle" @confirm="onSubmit">
       <template #content>
@@ -125,6 +185,7 @@ import {
   deleteScheduleJobBatch,
   getScheduleJobInfo,
   getScheduleJobList,
+  getScheduleJobLogList,
   getScheduleTaskBeanList,
   pauseScheduleJob,
   resumeScheduleJob,
@@ -133,10 +194,11 @@ import {
   updateScheduleJob,
 } from '@/api/monitor/schedule';
 import ModalDialog from '@/components/ModalDialog.vue';
+import ModalDrawer from '@/components/ModalDrawer.vue';
 import TableHeader from '@/components/table/TableHeader.vue';
 import TableSearch from '@/components/table/TableSearch.vue';
 import { usePagination, useRowKey, useRowSelection, useTable, useTableColumn } from '@/hooks/table';
-import type { SysScheduleJob, TaskBeanOption } from '@/types/monitor';
+import type { SysScheduleJob, SysScheduleJobLog, TaskBeanOption } from '@/types/monitor';
 
 const { tableLoading, dataList, indexColumn, handleSuccess } = useTable();
 const rowKey = useRowKey('id');
@@ -154,6 +216,23 @@ const isAdd = ref(true);
 
 const taskBeanOptions = ref<TaskBeanOption[]>([]);
 const taskBeanLoading = ref(false);
+
+const logDrawerRef = useTemplateRef('logDrawerRef');
+const currentLogJob = ref<SysScheduleJob | null>(null);
+const logList = ref<SysScheduleJobLog[]>([]);
+const logLoading = ref(false);
+const logPagination = usePagination(loadJobLogs);
+let logRequestSeq = 0;
+const logColumns = useTableColumn(
+  [
+    { title: '执行时间', colKey: 'ctime', width: 180 },
+    { title: '状态', colKey: 'status', width: 80 },
+    { title: '参数', colKey: 'parameter' },
+    { title: '耗时', colKey: 'times', width: 100 },
+    { title: '失败信息', colKey: 'error' },
+  ],
+  { align: 'center' },
+);
 
 const formData = reactive<SysScheduleJob>({
   id: '',
@@ -198,7 +277,7 @@ const tableColumns = reactive(
         title: '操作',
         colKey: 'actions',
         fixed: 'right',
-        width: 280,
+        width: 360,
       },
     ],
     {
@@ -207,9 +286,15 @@ const tableColumns = reactive(
   ),
 );
 
+function onSearch() {
+  pagination.current = 1;
+  loadData();
+}
+
 function resetSearch() {
   searchForm.beanName = '';
   searchForm.status = undefined;
+  pagination.current = 1;
   loadData();
 }
 
@@ -271,6 +356,10 @@ function onEdit(row: SysScheduleJob) {
   actionTitle.value = '编辑定时任务';
   getScheduleJobInfo(row.id)
     .then((job) => {
+      if (!job) {
+        MessagePlugin.error('定时任务不存在，可能已被删除');
+        return;
+      }
       Object.assign(formData, {
         id: job.id,
         beanName: job.beanName,
@@ -308,9 +397,10 @@ async function onSubmit() {
     }
     modalDialogRef.value?.close();
     loadData();
-  } catch (err) {
+  } catch (err: any) {
     console.log('定时任务操作失败', err);
-    void MessagePlugin.error('定时任务操作失败');
+    // 展示后端返回的具体原因（如 Cron 表达式不正确）
+    void MessagePlugin.error(err?.message || '定时任务操作失败');
   }
 }
 
@@ -324,6 +414,10 @@ function onDelete(row: SysScheduleJob) {
       deleteScheduleJob(row.id)
         .then(() => {
           MessagePlugin.success('定时任务删除成功');
+          // 删除的是当前页唯一一条时，删完回退一页
+          if (dataList.length === 1 && pagination.current > 1) {
+            pagination.current -= 1;
+          }
           loadData();
         })
         .catch((err) => {
@@ -348,9 +442,14 @@ function onBatchDelete() {
     cancelBtn: '取消',
     confirmBtn: '删除',
     onConfirm: () => {
-      deleteScheduleJobBatch(selectedRowKeys.value as string[])
+      const ids = (selectedRowKeys.value || []) as string[];
+      deleteScheduleJobBatch(ids)
         .then(() => {
           MessagePlugin.success('定时任务批量删除成功');
+          // 删除后当前页可能为空，回退一页
+          if (ids.length >= dataList.length && pagination.current > 1) {
+            pagination.current -= 1;
+          }
           loadData();
           onClearSelected();
         })
@@ -364,6 +463,45 @@ function onBatchDelete() {
     },
   });
 }
+function loadJobLogs() {
+  if (!currentLogJob.value) {
+    return Promise.resolve();
+  }
+  const seq = ++logRequestSeq;
+  logLoading.value = true;
+  return getScheduleJobLogList({
+    jobId: currentLogJob.value.id,
+    page: logPagination.current,
+    pageSize: logPagination.pageSize,
+  })
+    .then((res) => {
+      if (seq !== logRequestSeq) return;
+      logList.value = res.list;
+      logPagination.setTotalSize(res.total);
+    })
+    .catch((err) => {
+      if (seq !== logRequestSeq) return;
+      console.error('加载任务日志失败', err);
+      MessagePlugin.error('加载任务日志失败');
+    })
+    .finally(() => {
+      if (seq === logRequestSeq) {
+        logLoading.value = false;
+      }
+    });
+}
+
+function onShowLogs(row: SysScheduleJob) {
+  currentLogJob.value = row;
+  logPagination.current = 1;
+  logDrawerRef.value?.show();
+  loadJobLogs();
+}
+
+function onLogDrawerConfirm() {
+  logDrawerRef.value?.close();
+}
+
 function onRun(row: SysScheduleJob) {
   runScheduleJob(row.id)
     .then(() => {
@@ -402,3 +540,8 @@ function onResume(row: SysScheduleJob) {
 
 onMounted(loadData);
 </script>
+<style scoped>
+.log-toolbar {
+  margin-bottom: 12px;
+}
+</style>

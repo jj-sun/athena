@@ -1,4 +1,4 @@
-import type { SysScheduleJob } from '@/types/monitor';
+import type { PageResult, SysScheduleJob, SysScheduleJobLog } from '@/types/monitor';
 import { DELETE, GET, POST, PUT } from '@/utils/http';
 
 const scheduleApi = {
@@ -12,6 +12,7 @@ const scheduleApi = {
   pause: '/sys/schedule/pause',
   resume: '/sys/schedule/resume',
   taskBeanList: '/sys/schedule/taskBeanList',
+  logList: '/sys/scheduleLog/list',
 };
 
 export function getScheduleJobList(params: { page: number; pageSize: number; beanName?: string; status?: number }) {
@@ -53,4 +54,8 @@ export function pauseScheduleJob(id: string) {
 
 export function resumeScheduleJob(id: string) {
   return GET(`${scheduleApi.resume}?id=${id}`);
+}
+
+export function getScheduleJobLogList(params: { page: number; pageSize: number; jobId: string }) {
+  return GET<PageResult<SysScheduleJobLog>>(scheduleApi.logList, params);
 }

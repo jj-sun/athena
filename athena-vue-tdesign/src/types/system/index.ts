@@ -12,7 +12,7 @@ export interface SysUser {
   deptCode_dictText?: string;
   userType?: number;
   delFlag?: number;
-  createTime?: string;
+  ctime?: string;
   roleIdList?: Array<string>;
 }
 
@@ -22,7 +22,7 @@ export interface SysRole {
   roleCode: string;
   remark: string;
   delFlag?: number;
-  createTime?: string;
+  ctime?: string;
 }
 
 export interface SysDept {
@@ -36,21 +36,35 @@ export interface SysDept {
   children?: Array<SysDept>;
 }
 
+/** 部门选择接口（/sys/dept/select）返回的树节点结构 */
+export interface SysDeptTree {
+  info: SysDept;
+  key: string;
+  parentKey: string;
+  title: string;
+  disabled: boolean;
+  children?: Array<SysDeptTree>;
+}
+
 export interface SysDict {
   id: string;
   dictName: string;
   dictCode: string;
   type: number;
   description: string;
-  createTime?: string;
+  /** 创建时间，后端字段名为 ctime */
+  ctime?: string;
 }
 
 export interface SysDictItem {
   id?: string;
   dictId: string;
-  label: string;
-  value: string;
-  sortOrder: number;
+  /** 字典项标签，对应后端 item_text */
+  itemText: string;
+  /** 字典项值，对应后端 item_value */
+  itemValue: string;
+  sortOrder?: number;
+  description?: string;
 }
 
 export interface SysPermission {

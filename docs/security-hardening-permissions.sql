@@ -57,6 +57,7 @@ INSERT INTO tmp_perm_codes (perms, name, parent_name, order_num) VALUES
   -- 用户管理
   ('sys:user:info',            '用户详情',     '用户管理', 130),
   ('sys:user:resetPassword',   '重置用户密码', '用户管理', 131),
+  ('sys:user:deleteBatch',     '用户批量删除', '用户管理', 132),
   -- 角色管理
   ('sys:role:list',            '角色列表',     '角色管理', 100),
   ('sys:role:select',          '角色选择',     '角色管理', 101),
@@ -64,6 +65,8 @@ INSERT INTO tmp_perm_codes (perms, name, parent_name, order_num) VALUES
   ('sys:role:save',            '角色新增',     '角色管理', 103),
   ('sys:role:update',          '角色修改',     '角色管理', 104),
   ('sys:role:delete',          '角色删除',     '角色管理', 105),
+  -- 分配角色权限：与"修改角色名称/备注"分离，避免 sys:role:update 天然等价于管理员
+  ('sys:role:assignPermission','分配角色权限', '角色管理', 106),
   -- 菜单管理
   ('sys:menu:list',            '菜单列表',     '菜单管理', 110),
   ('sys:menu:select',          '菜单选择',     '菜单管理', 111),
@@ -180,10 +183,11 @@ FROM (
   SELECT 'sys:menu:info'            UNION ALL SELECT 'sys:menu:list'        UNION ALL
   SELECT 'sys:menu:save'            UNION ALL SELECT 'sys:menu:select'      UNION ALL
   SELECT 'sys:menu:update'          UNION ALL SELECT 'sys:monitor:metrics'  UNION ALL
-  SELECT 'sys:monitor:redis'        UNION ALL SELECT 'sys:role:delete'      UNION ALL
-  SELECT 'sys:role:info'            UNION ALL SELECT 'sys:role:list'        UNION ALL
-  SELECT 'sys:role:save'            UNION ALL SELECT 'sys:role:select'      UNION ALL
-  SELECT 'sys:role:update'          UNION ALL SELECT 'sys:schedule:delete'  UNION ALL
+  SELECT 'sys:monitor:redis'        UNION ALL SELECT 'sys:role:assignPermission' UNION ALL
+  SELECT 'sys:role:delete'          UNION ALL SELECT 'sys:role:info'        UNION ALL
+  SELECT 'sys:role:list'            UNION ALL SELECT 'sys:role:save'        UNION ALL
+  SELECT 'sys:role:select'          UNION ALL SELECT 'sys:role:update'      UNION ALL
+  SELECT 'sys:schedule:delete'      UNION ALL
   SELECT 'sys:schedule:info'        UNION ALL SELECT 'sys:schedule:list'    UNION ALL
   SELECT 'sys:schedule:log'         UNION ALL SELECT 'sys:schedule:run'     UNION ALL
   SELECT 'sys:schedule:save'        UNION ALL SELECT 'sys:schedule:update'  UNION ALL

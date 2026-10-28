@@ -46,7 +46,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 	public PageUtils queryPage(SysUser user, PageDto pageDto) {
 		LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<SysUser>()
 			.like(StringUtils.isNotBlank(user.getUsername()), SysUser::getUsername, user.getUsername())
-			.like(StringUtils.isNotBlank(user.getRealname()), SysUser::getRealname, user.getRealname());
+			.like(StringUtils.isNotBlank(user.getRealname()), SysUser::getRealname, user.getRealname())
+			.like(StringUtils.isNotBlank(user.getEmail()), SysUser::getEmail, user.getEmail());
 
 		if (StringUtils.isNotBlank(user.getDeptCode())) {
 			List<String> deptIds = sysDeptService.getSubDeptIds(user.getDeptCode());
@@ -76,19 +77,16 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public void saveUser(SysUser user) {
-		//sha256加密
-		//BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+		// 不再使用固定默认口令（原为 123456）：创建用户必须显式设置初始密码，
+		// 并且无论是否显式设置，都执行复杂度校验。
 		if(StringUtils.isBlank(user.getPassword())) {
-			String md5 = SaSecureUtil.md5(user.getUsername() + ":123456");
-			user.setPassword(BCrypt.hashpw(md5, BCrypt.gensalt()));
-		} else {
-			// 密码复杂度校验
-			if(!PasswordUtils.isComplex(user.getPassword())) {
-				throw new RRException("密码需包含大写、小写、数字和特殊字符，且不少于8位");
-			}
-			String md5 = SaSecureUtil.md5(user.getUsername() + ":" + user.getPassword());
-			user.setPassword(BCrypt.hashpw(md5, BCrypt.gensalt()));
+			throw new RRException("新增用户必须设置初始密码");
 		}
+		if(!PasswordUtils.isComplex(user.getPassword())) {
+			throw new RRException("密码需包含大写、小写、数字和特殊字符，且不少于8位");
+		}
+		String md5 = SaSecureUtil.md5(user.getUsername() + ":" + user.getPassword());
+		user.setPassword(BCrypt.hashpw(md5, BCrypt.gensalt()));
 		this.save(user);
 
 		//保存用户与角色关系

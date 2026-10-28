@@ -1,3 +1,4 @@
+import type { PageResult } from '@/types/base';
 import type { SysDict, SysDictItem } from '@/types/system';
 import { DELETE, GET, POST, PUT } from '@/utils/http';
 
@@ -37,12 +38,22 @@ export function deleteDict(id: string) {
   return DELETE(`${dictApi.delete}?id=${id}`);
 }
 
-export function getDictItemList(params: { dictId: string }) {
-  return GET(dictItemApi.list, params);
+export function getDictItemList(params: {
+  dictId: string;
+  page: number;
+  pageSize: number;
+  itemText?: string;
+  itemValue?: string;
+}) {
+  return GET<PageResult<SysDictItem>>(dictItemApi.list, params);
 }
 
 export function saveDictItem(data: SysDictItem) {
   return POST(dictItemApi.save, data);
+}
+
+export function updateDictItem(data: SysDictItem) {
+  return PUT(dictItemApi.update, data);
 }
 
 export function deleteDictItem(id: string) {

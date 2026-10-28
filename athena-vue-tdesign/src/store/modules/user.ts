@@ -2,7 +2,7 @@ import Cookies from 'js-cookie';
 import { defineStore } from 'pinia';
 
 import Avatar from '@/assets/img_avatar.gif';
-import { getPermissionStore, usePermissionStore } from '@/store';
+import { getPermissionStore, getTabsRouterStore, usePermissionStore } from '@/store';
 import type { LoginInfo } from '@/types/base';
 import type { UserState } from '@/types/interface';
 
@@ -65,6 +65,8 @@ export const useUserStore = defineStore('user', {
       this.setInfo(InitUserInfo);
       Cookies.remove(USER_TOKEN_KEY);
       localStorage.clear();
+      // 清空多标签页，避免换账号后仍看到上一个账号打开过的页面
+      getTabsRouterStore().removeTabRouterList();
       const permissionStore = getPermissionStore();
       permissionStore.restoreRoutes().then(() => {
         console.log('清除权限');

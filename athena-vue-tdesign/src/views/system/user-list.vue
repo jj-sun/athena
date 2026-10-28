@@ -1,7 +1,7 @@
 <template>
   <div style="height: 100%">
     <t-row>
-      <t-col :flex="1" style="height: inherit">
+      <t-col v-permission="'sys:dept:list'" :flex="1" style="height: inherit">
         <t-card style="height: 100%" class="h-full" :body-style="{ padding: '5px' }" :header-style="{ padding: '5px' }">
           <t-space>
             <t-input v-model:value="deptSearch" placeholder="搜索部门" size="small" @change="deptSearchChange" />
@@ -9,6 +9,7 @@
           </t-space>
           <div class="mt-4">
             <t-tree
+              v-model:value="selectedDeptKeys"
               :expand-all="expandAllFlag"
               :data="departmentTree"
               checkable
@@ -16,6 +17,7 @@
               :expand-level="1"
               :filter="deptFilter"
               :keys="{ value: 'id', label: 'deptName' }"
+              value-mode="all"
               line
               hover
               @change="onDeptCheck"
@@ -24,10 +26,10 @@
         </t-card>
       </t-col>
       <t-col :flex="9">
-        <table-search @search="loadData" @reset-search="resetSearch">
+        <table-search @search="onSearch" @reset-search="resetSearch">
           <template #search-content>
             <t-col :span="3">
-              <t-form-item label="性别" style="width: 100%">
+              <t-form-item label="用户名" style="width: 100%">
                 <t-input v-model:value="searchForm.username" placeholder="请输入用户名" />
               </t-form-item>
             </t-col>
@@ -52,20 +54,12 @@
             @do-table-setting="onUpdateTable"
           >
             <template #action>
-              <t-button theme="primary" @click="onAdd">
+              <t-button v-permission="'sys:user:save'" theme="primary" @click="onAdd">
                 <template #icon><plus-icon /></template>
                 新增
               </t-button>
-              <t-button theme="primary">
-                <template #icon><upload-icon /></template>
-                导入
-              </t-button>
-              <t-button theme="primary">
-                <template #icon><download-icon /></template>
-                导出
-              </t-button>
               <t-dropdown>
-                <t-button>
+                <t-button v-permission="'sys:user:deleteBatch'">
                   批量操作
                   <template #suffix><more-icon /></template>
                 </t-button>
@@ -103,12 +97,28 @@
             </template>
             <template #actions="{ row }">
               <t-space>
-                <t-button theme="primary" ghost size="small" @click="onEdit(row)">编辑</t-button>
-                <t-button theme="warning" ghost size="small" @click="onResetPassword(row)">
+                <t-button
+                  v-permission="['sys:user:info', 'sys:user:update']"
+                  theme="primary"
+                  ghost
+                  size="small"
+                  @click="onEdit(row)"
+                >
+                  编辑
+                </t-button>
+                <t-button
+                  v-permission="'sys:user:resetPassword'"
+                  theme="warning"
+                  ghost
+                  size="small"
+                  @click="onResetPassword(row)"
+                >
                   <template #icon><key-icon /></template>
                   改密
                 </t-button>
-                <t-button theme="danger" ghost size="small" @click="onDelete(row)">删除</t-button>
+                <t-button v-permission="'sys:user:delete'" theme="danger" ghost size="small" @click="onDelete(row)">
+                  删除
+                </t-button>
               </t-space>
             </template>
           </t-table>
@@ -173,7 +183,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { DeleteIcon, DownloadIcon, KeyIcon, MoreIcon, PlusIcon, UploadIcon } from 'tdesign-icons-vue-next';
+import { DeleteIcon, KeyIcon, MoreIcon, PlusIcon } from 'tdesign-icons-vue-next';
 import type { FormInstanceFunctions, FormProps, TreeProps } from 'tdesign-vue-next';
 import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
 import { getCurrentInstance, onMounted, reactive, ref, useTemplateRef } from 'vue';
@@ -202,6 +212,7 @@ import {
   useTableColumn,
   useTableHeight,
 } from '@/hooks/table';
+import { getPermissionStore } from '@/store';
 import type { TablePropsType } from '@/types/components';
 import type { SysRole, SysUser } from '@/types/system';
 import { sortColumns } from '@/utils';
@@ -257,6 +268,18 @@ const rules: FormProps['rules'] = {
     {
       required: true,
       message: '姓名必填',
+      type: 'error',
+    },
+  ],
+  email: [
+    {
+      required: true,
+      message: '邮箱必填',
+      type: 'error',
+    },
+    {
+      pattern: /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/,
+      message: '邮箱格式不正确',
       type: 'error',
     },
   ],
@@ -351,10 +374,18 @@ const tableColumns = reactive(
   ),
 );
 
+function onSearch() {
+  pagination.current = 1;
+  loadData();
+}
+
 function resetSearch() {
   searchForm.username = '';
   searchForm.realname = '';
   searchForm.email = '';
+  // 同时清除左侧部门树筛选
+  selectedDeptKeys.value = [];
+  pagination.current = 1;
   loadData();
 }
 
@@ -414,6 +445,7 @@ function deptSearchChange() {
 
 function onDeptCheck(checked: any) {
   selectedDeptKeys.value = checked;
+  pagination.current = 1;
   loadData();
 }
 
@@ -473,7 +505,7 @@ async function onSubmit() {
       modalDialogRef.value?.close();
       loadData();
     } catch (error: any) {
-      void MessagePlugin.error(error?.response?.data?.msg || '操作失败');
+      void MessagePlugin.error(error?.message || '操作失败');
     }
   }
 }
@@ -490,6 +522,10 @@ function onDelete(record: SysUser) {
       deleteUser(record.id)
         .then(() => {
           MessagePlugin.success('删除成功');
+          // 删除的是当前页唯一一条时，删完回退一页
+          if (dataList.length === 1 && pagination.current > 1) {
+            pagination.current -= 1;
+          }
           loadData();
         })
         .catch((err) => {
@@ -514,9 +550,14 @@ function onBatchDelete() {
     cancelBtn: '取消',
     confirmBtn: '删除',
     onConfirm: async () => {
-      deleteUserBatch(selectedRowKeys.value as string[])
+      const ids = (selectedRowKeys.value || []) as string[];
+      deleteUserBatch(ids)
         .then(() => {
           MessagePlugin.success('批量删除成功');
+          // 删除后当前页可能为空，回退一页
+          if (ids.length >= dataList.length && pagination.current > 1) {
+            pagination.current -= 1;
+          }
           loadData();
           onClearSelected();
         })
@@ -572,7 +613,13 @@ onMounted(() => {
     tableHeight.value = height;
   });
   loadData();
-  loadDeptTree();
-  loadRoleOptions();
+  // 仅在有对应权限时加载筛选/表单数据，避免无权限角色一进页面就弹 403
+  const { permissions } = getPermissionStore();
+  if (permissions.includes('sys:dept:list')) {
+    loadDeptTree();
+  }
+  if (permissions.includes('sys:role:select')) {
+    loadRoleOptions();
+  }
 });
 </script>

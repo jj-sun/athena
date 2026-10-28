@@ -73,16 +73,23 @@
 > Spring MVC 的 `HandlerInterceptor`，**根本看不到它**。因此「把 `/druid/**` 从免登录白名单里删掉」
 > 并不能保护它 —— 必须靠 `stat-view-servlet.enabled` 与自身的账号/来源限制。
 > 另外浏览器访问 `/druid/` 无法携带 `X-Access-Token`，无法用登录态兜底。
-> 现策略：dev 开启并限制为 `127.0.0.1` + 账号密码 + 禁止重置统计；test/prod 整块关闭。
+> 现策略：dev 开启并限制为 `127.0.0.1` + 账号密码 + 禁止重置统计。
+> **2026-10-22 更新**：按客户决定，test/prod 配置与 dev 保持一致（见下方矩阵）。
 
 ## 二、环境矩阵
 
+> **2026-10-22 更新**：`application-test.yml` / `application-prod.yml` 已与
+> `application-dev.yml` 保持一致。因此三个环境的行为相同；若正式上线前需要恢复
+> 「生产关闭文档 / Druid」，请按 `penetration-test-report.md` 中 F-09、F-10 的说明
+> 调整 profile 差异配置，或在部署层（nginx、网络隔离）控制。
+
 | 配置 | dev | test | prod |
 |---|---|---|---|
-| Druid 控制台 | 开启（仅 127.0.0.1，需登录） | 关闭 | 关闭 |
-| 接口文档 `/doc.html`、`/v3/api-docs` | 开启 | 关闭 | 关闭 |
-| `athena.security.expose-api-docs` | `true` | 默认 `false` | 默认 `false` |
-| actuator 暴露 | 仅 `health` | 默认 | 默认 |
+| Druid 控制台 | 开启（仅 127.0.0.1，需登录） | 同 dev | 同 dev |
+| 接口文档 `/doc.html`、`/v3/api-docs` | 开启 | 同 dev | 同 dev |
+| `athena.security.expose-api-docs` | `true` | `true` | `true` |
+| `athena.security.trusted-proxies` | 空（直连，不信任转发头） | `${ATHENA_TRUSTED_PROXIES:}` | `${ATHENA_TRUSTED_PROXIES:}` |
+| actuator 暴露 | 仅 `health` | 同 dev | 同 dev |
 
 ## 三、上线顺序（不可打乱）
 

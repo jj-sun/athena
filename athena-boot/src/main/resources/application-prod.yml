@@ -1,11 +1,100 @@
+# jetty
+server:
+  port: 8080
+  servlet:
+    context-path: /athena
+  jetty:
+    threads:
+      max: 200
+      min: 8
+  compression:
+    enabled: true
+    min-response-size: 1024
+    mime-types: application/javascript,application/json,application/xml,text/html,text/xml,text/plain,text/css,image/*
+
+#mybatis
+mybatis-plus:
+  mapper-locations: classpath*:com/athena/modules/**/xml/*Mapper.xml
+  #实体扫描，多个package用逗号或者分号分隔
+  #typeAliasesPackage: com.athena.modules.*.entity
+  global-config:
+    #数据库相关配置
+    db-config:
+      #主键类型  AUTO:"数据库ID自增", INPUT:"用户输入ID", ID_WORKER:"全局唯一ID (数字类型唯一ID)", UUID:"全局唯一ID UUID";
+      id-type: ASSIGN_ID
+      logic-delete-value: -1
+      logic-not-delete-value: 0
+    banner: false
+  #原生配置
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    call-setters-on-nulls: true
+    jdbc-type-for-null: 'null'
+management:
+  # 不再暴露 httptrace：它会记录请求头，其中包括 X-Access-Token，
+  # 任何能访问该端点的登录用户都可借此收割他人 token。
+  endpoints:
+    web:
+      exposure:
+        include: health
+
 spring:
+  # jackson时间格式化
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+      enabled: true
+  data:
+    redis:
+      database: 0
+      host: 127.0.0.1
+      port: 6379
+      password:    # 密码（默认为空）
+      timeout: 6000ms  # 连接超时时长（毫秒）
+      lettuce:
+        pool:
+          max-active: 1000  # 连接池最大连接数（使用负值表示没有限制）
+          max-wait: -1ms      # 连接池最大阻塞等待时间（使用负值表示没有限制）
+          max-idle: 10      # 连接池中的最大空闲连接
+          min-idle: 5       # 连接池中的最小空闲连接
+  #  resources:
+  #    add-mappings: false
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: embedded
+    auto-startup: true
+    overwrite-existing-jobs: true
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceName: MyScheduler
+            instanceId: AUTO
+            jobStore:
+              class: org.quartz.impl.jdbcjobstore.JobStoreTX
+              driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+              tablePrefix: QRTZ_
+              isClustered: true
+              misfireThreshold: 60000
+              clusterCheckinInterval: 10000
+            threadPool:
+              class: org.quartz.simpl.SimpleThreadPool
+              threadCount: 10
+              threadPriority: 5
+              threadsInheritContextClassLoaderOfInitializingThread: true
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     druid:
       driver-class-name: com.mysql.cj.jdbc.Driver
       url: jdbc:mysql://127.0.0.1:3306/athena_boot?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
       username: root
-      password: 123456
+      password: fast123456
       initial-size: 10
       max-active: 100
       min-idle: 10
@@ -20,31 +109,56 @@ spring:
       test-on-borrow: false
       test-on-return: false
       stat-view-servlet:
-        # 生产环境关闭 Druid 监控台。
-        # 关键：该控制台是 starter 注册的独立 servlet，Sa-Token 的登录拦截器（Spring MVC
-        # HandlerInterceptor）根本看不到它，所以“从免登录白名单里去掉 /druid/**”并不能保护它，
-        # 必须在此关闭。浏览器访问 /druid/ 也无法携带 X-Access-Token，无法用登录态兜底。
+        # 仅开发环境开启 Druid 监控台，并叠加三重限制：账号密码 + 仅本机可访问 + 禁止重置统计。
+        # 注意：它是独立 servlet，不经过 Spring MVC 的登录拦截器，Sa-Token 的免登录白名单
+        # 与它无关，必须靠这些设置控制。测试/生产环境已整块关闭（enabled: false）。
         enabled: false
+        url-pattern: /druid/*
+        # allow 必须显式填写：留空会被绑定成空串，语义不明确。
+        # 注意 Druid 的 allow 只认 IPv4（写 ::1 之类会在启动时报 initParameter config error），
+        # 因此访问控制台请用 IPv4 回环：http://127.0.0.1:8080/athena/druid/index.html
+        # 用 localhost 走 IPv6 会被判为不在名单内而拒绝（返回 "Sorry, you are not permitted"）。
+        allow: 127.0.0.1
+        reset-enable: false
+        login-username: druid
+        login-password: Admin@4728
       filter:
         stat:
           log-slow-sql: true
           slow-sql-millis: 1000
           merge-sql: false
         wall:
-          # 显式关闭 Druid SQL 防火墙，避免被误开启。
-          # 说明：它此前从未生效 —— starter 的 WallFilter bean 由 filter.wall.enabled 控制且无默认值，
-          # 而旧配置只设置了子项 filter.wall.config.multi-statement-allow，等于死配置。
-          # 该子项本身也不安全（true 表示允许多语句执行）。SQL 注入已在应用层收口：
-          # 排序字段/表名走白名单校验，并注册了 MyBatis-Plus BlockAttackInnerInterceptor。
+          # 不启用 Druid SQL 防火墙（默认关闭，避免被误开）。
+          # 原配置只写了子项 filter.wall.config.multi-statement-allow: true，而该 firewall 从未
+          # 真正生效过（bean 由 filter.wall.enabled 控制且无默认值）；且 true 会放开多语句执行。
+          # SQL 注入已在应用层治理：排序字段与动态表名白名单校验 + BlockAttackInnerInterceptor。
           enabled: false
-# 生产环境不暴露接口文档
 springdoc:
-  api-docs:
-    enabled: false
   swagger-ui:
-    enabled: false
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
 knife4j:
-  enable: false
+  enable: true
+  production: false
+  basic:
+    # 安全提示（待整改）：默认弱口令。开发环境可接受，切勿带到测试/生产环境
+    # （测试与生产已通过 knife4j.enable: false 整体关闭）。
+    enable: false
+    username: admin
+    password: Admin@3721
+athena:
+  security:
+    # 仅开发环境放开接口文档路径（/doc.html、/v3/api-docs 等）。
+    # 测试/生产为 false，且对应端点已在 application-{test,prod}.yml 中整体关闭。
+    expose-api-docs: false
+    # 生产环境在 nginx 之后：通过环境变量 ATHENA_TRUSTED_PROXIES 注入代理出口地址/网段，
+    # 例如 127.0.0.1（同机 nginx）或 172.17.0.0/16（独立容器）。
+    # 未设置时不信任任何转发头（安全默认）。
+    trusted-proxies: ${ATHENA_TRUSTED_PROXIES:}
 logging:
   level:
     com.athena.modules.system.mapper: info
+

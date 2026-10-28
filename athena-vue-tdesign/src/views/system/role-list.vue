@@ -1,6 +1,6 @@
 <template>
   <div class="main-container">
-    <table-search @search="loadData" @reset-search="resetSearch">
+    <table-search @search="onSearch" @reset-search="resetSearch">
       <template #search-content>
         <t-col :span="3">
           <t-form-item label="角色名称" style="width: 100%">
@@ -23,12 +23,12 @@
         @do-table-setting="onUpdateTable"
       >
         <template #action>
-          <t-button theme="primary" @click="onAdd">
+          <t-button v-permission="'sys:role:save'" theme="primary" @click="onAdd">
             <template #icon><plus-icon /></template>
             新增
           </t-button>
           <t-dropdown>
-            <t-button>
+            <t-button v-permission="'sys:role:delete'">
               批量操作
               <template #suffix><more-icon /></template>
             </t-button>
@@ -59,10 +59,30 @@
         </template>
         <template #actions="{ row }">
           <t-space>
-            <t-button theme="primary" ghost size="small" @click="onEdit(row)">编辑</t-button>
-            <t-button theme="danger" ghost size="small" @click="onDelete(row)">删除</t-button>
-            <t-button theme="primary" ghost size="small" @click="onShowMenu(row)">菜单权限</t-button>
-            <t-button theme="primary" ghost size="small" @click="onShowUsers(row)">用户</t-button>
+            <t-button
+              v-permission="['sys:role:info', 'sys:role:update']"
+              theme="primary"
+              ghost
+              size="small"
+              @click="onEdit(row)"
+            >
+              编辑
+            </t-button>
+            <t-button v-permission="'sys:role:delete'" theme="danger" ghost size="small" @click="onDelete(row)">
+              删除
+            </t-button>
+            <t-button
+              v-permission="['sys:role:assignPermission', 'sys:menu:list']"
+              theme="primary"
+              ghost
+              size="small"
+              @click="onShowMenu(row)"
+            >
+              菜单权限
+            </t-button>
+            <t-button v-permission="'sys:role:list'" theme="primary" ghost size="small" @click="onShowUsers(row)">
+              用户
+            </t-button>
           </t-space>
         </template>
       </t-table>
@@ -96,6 +116,7 @@
           :data="menuTreeData"
           :keys="{ value: 'id', label: 'name' }"
           :check-strictly="true"
+          :disable-check="disableCheck"
           checkable
         />
       </template>
@@ -107,7 +128,7 @@
             <span
               >当前角色：<strong>{{ currentRole?.roleName }}</strong></span
             >
-            <t-button theme="primary" size="small" @click="onOpenAddUserDialog">
+            <t-button v-permission="'sys:role:update'" theme="primary" size="small" @click="onOpenAddUserDialog">
               <template #icon><plus-icon /></template>
               添加用户
             </t-button>
@@ -129,7 +150,9 @@
               <t-tag v-else theme="danger" size="small">禁用</t-tag>
             </template>
             <template #userActions="{ row }">
-              <t-button theme="danger" ghost size="small" @click="onRemoveUser(row)">移除</t-button>
+              <t-button v-permission="'sys:role:update'" theme="danger" ghost size="small" @click="onRemoveUser(row)">
+                移除
+              </t-button>
             </template>
           </t-table>
         </div>
@@ -142,7 +165,7 @@
           <t-form-item label="选择用户">
             <t-select
               v-model:value="selectedUserIds"
-              placeholder="输入用户名或姓名搜索后选择"
+              placeholder="输入用户名搜索后选择"
               multiple
               :options="availableUserOptions"
               :max="50"
@@ -160,7 +183,7 @@
 </template>
 <script lang="ts" setup>
 import { DeleteIcon, MoreIcon, PlusIcon } from 'tdesign-icons-vue-next';
-import type { FormInstanceFunctions, FormProps } from 'tdesign-vue-next';
+import type { FormInstanceFunctions, FormProps, TreeNodeModel } from 'tdesign-vue-next';
 import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
 import { onMounted, reactive, ref, useTemplateRef } from 'vue';
 
@@ -175,8 +198,8 @@ import {
   getRoleUserList,
   removeUserFromRole,
   saveRole,
-  updateRole,
   saveRolePerms,
+  updateRole,
 } from '@/api/system/role';
 import { getUserList } from '@/api/system/user';
 import ModalDialog from '@/components/ModalDialog.vue';
@@ -239,6 +262,32 @@ const rules: FormProps['rules'] = {
 const menuTreeData = ref([] as Array<any>);
 const defaultCheckedKeys = ref([] as Array<string>);
 const defaultExpandedKeys = ref([] as Array<string>);
+/** 强制菜单（仪表盘、概览），在权限树中保持勾选且禁止取消 */
+const mandatoryMenuIds = ref([] as Array<string>);
+
+/** 与后端 getMandatoryMenuIds() 保持一致 */
+const MANDATORY_MENU_URLS = ['/dashboard', '/dashboard/analysis'];
+
+/** 从菜单树中按 URL 找出强制菜单 ID（菜单 ID 是动态雪花值，不能写死） */
+function collectMandatoryMenuIds(nodes: Array<any>): Array<string> {
+  const ids: Array<string> = [];
+  const walk = (list: Array<any>) => {
+    list?.forEach((node) => {
+      if (node?.url && MANDATORY_MENU_URLS.includes(node.url)) {
+        ids.push(String(node.id));
+      }
+      if (node?.children?.length) {
+        walk(node.children);
+      }
+    });
+  };
+  walk(nodes);
+  return ids;
+}
+
+function disableCheck(node: TreeNodeModel): boolean {
+  return mandatoryMenuIds.value.includes(String(node.value));
+}
 
 const userModalDrawerRef = useTemplateRef('userModalDrawerRef');
 const addUserDialogRef = useTemplateRef('addUserDialogRef');
@@ -296,9 +345,15 @@ const tableColumns = useTableColumn(
   { align: 'center' },
 );
 
+function onSearch() {
+  pagination.current = 1;
+  loadData();
+}
+
 function resetSearch() {
   searchForm.roleName = '';
   searchForm.roleCode = '';
+  pagination.current = 1;
   loadData();
 }
 
@@ -366,7 +421,7 @@ async function onSubmit() {
       modalDialogRef.value?.close();
       await loadData();
     } catch (error: any) {
-      void MessagePlugin.error(error?.response?.data?.msg || '操作失败');
+      void MessagePlugin.error(error?.message || '操作失败');
     }
   }
 }
@@ -383,6 +438,10 @@ function onDelete(record: SysRole) {
       deleteRole(record.id)
         .then(() => {
           MessagePlugin.success('删除成功');
+          // 删除的是当前页唯一一条时，删完回退一页
+          if (dataList.length === 1 && pagination.current > 1) {
+            pagination.current -= 1;
+          }
           loadData();
         })
         .catch((err) => {
@@ -407,9 +466,14 @@ async function onBatchDelete() {
     cancelBtn: '取消',
     confirmBtn: '删除',
     onConfirm: () => {
-      deleteRoleBatch(selectedRowKeys.value as string[])
+      const ids = (selectedRowKeys.value || []) as string[];
+      deleteRoleBatch(ids)
         .then(() => {
           MessagePlugin.success('批量删除成功');
+          // 删除后当前页可能为空，回退一页
+          if (ids.length >= dataList.length && pagination.current > 1) {
+            pagination.current -= 1;
+          }
           loadData();
           onClearSelected();
         })
@@ -427,9 +491,11 @@ async function onBatchDelete() {
 async function onShowMenu(row: SysRole) {
   currentRole.value = row;
   try {
-    console.log(row);
     menuTreeData.value = await getMenuList();
-    defaultCheckedKeys.value = await getPermissionIdList(row.id);
+    const assignedPermissionIds = await getPermissionIdList(row.id);
+    mandatoryMenuIds.value = collectMandatoryMenuIds(menuTreeData.value);
+    // 已分配权限 + 强制菜单（前端兜底补齐，避免后端版本差异导致仪表盘未勾选）
+    defaultCheckedKeys.value = Array.from(new Set([...(assignedPermissionIds ?? []), ...mandatoryMenuIds.value]));
     defaultExpandedKeys.value = defaultCheckedKeys.value;
     menuModalDialogRef.value?.toggle();
   } catch (error) {
@@ -439,10 +505,7 @@ async function onShowMenu(row: SysRole) {
 
 function onMenuConfirm() {
   if (!currentRole.value) return;
-  if (defaultCheckedKeys.value.length === 0) {
-    void MessagePlugin.warning('请选择要添加的权限');
-    return;
-  }
+  // 允许提交空数组：后端支持清空该角色的全部权限
   saveRolePerms({ roleId: currentRole.value.id, permissionIdList: defaultCheckedKeys.value as string[] })
     .then(() => {
       MessagePlugin.success(`权限设置成功`);
@@ -499,6 +562,10 @@ async function onRemoveUser(row: SysUser) {
       removeUserFromRole(currentRole.value!.id, row.id)
         .then(() => {
           MessagePlugin.success('移除成功');
+          // 移除的是当前页唯一一条时，删完回退一页
+          if (userList.length === 1 && userPagination.current > 1) {
+            userPagination.current -= 1;
+          }
           loadRoleUsers();
         })
         .catch((err) => {

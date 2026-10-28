@@ -2,6 +2,7 @@ package com.athena.modules.job.service.impl;
 
 import com.athena.common.base.dto.PageDto;
 import com.athena.common.constant.Constant;
+import com.athena.common.exception.RRException;
 import com.athena.common.utils.PageUtils;
 import com.athena.common.utils.Query;
 import com.athena.modules.job.entity.ScheduleJob;
@@ -14,6 +15,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
+import org.quartz.CronExpression;
 import org.quartz.CronTrigger;
 import org.quartz.Scheduler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,20 +70,38 @@ public class ScheduleJobServiceImpl extends ServiceImpl<ScheduleJobMapper, Sched
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public void saveJob(ScheduleJob scheduleJob) {
+		validateJob(scheduleJob);
 		scheduleJob.setCtime(new Date());
-		scheduleJob.setStatus(Constant.ScheduleStatus.NORMAL.getValue());
         this.save(scheduleJob);
-        
+
         ScheduleUtils.createScheduleJob(scheduler, scheduleJob);
     }
-	
+
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public void update(ScheduleJob scheduleJob) {
+		validateJob(scheduleJob);
         ScheduleUtils.updateScheduleJob(scheduler, scheduleJob);
-                
+
         this.updateById(scheduleJob);
     }
+
+	/**
+	 * 校验 Cron 表达式与任务状态。
+	 * <p>旧实现会把新增任务的状态强制改成“正常”，导致用户选择“暂停”仍立即开始调度；
+	 * 同时无效 Cron 会在 Quartz 内部抛出运行时异常，只能返回笼统的“系统繁忙”。
+	 */
+	private static void validateJob(ScheduleJob scheduleJob) {
+		if (StringUtils.isBlank(scheduleJob.getCronExpression())
+				|| !CronExpression.isValidExpression(scheduleJob.getCronExpression())) {
+			throw new RRException("Cron表达式不正确");
+		}
+		Integer status = scheduleJob.getStatus();
+		if (status == null
+				|| (status != Constant.ScheduleStatus.NORMAL.getValue() && status != Constant.ScheduleStatus.PAUSE.getValue())) {
+			scheduleJob.setStatus(Constant.ScheduleStatus.NORMAL.getValue());
+		}
+	}
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)

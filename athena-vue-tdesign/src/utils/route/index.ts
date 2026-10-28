@@ -52,22 +52,29 @@ function dynamicImport(component: string): RouteComponent {
 }
 
 export function generatorRoutes(routeList: BaseTree[]): RouteRecordRaw[] {
-  return routeList.map((it): RouteRecordRaw => {
-    return {
-      path: it.info.url,
-      name: it.info.id,
-      component: resolveComponent(it.info.component),
-      meta: {
-        title: it.title,
-        key: it.key,
-        icon: it.info.icon,
-        single: !!it.info.isSingle,
-        hidden: !it.info.hidden,
-        orderNo: it.info.orderNum as number,
-        frameSrc: it.info.frameSrc,
-        frameBlank: it.info.frameBlank === 0,
-      },
-      children: it.children?.length ? generatorRoutes(it.children) : undefined,
-    };
-  });
+  return (
+    routeList
+      // 目录（type=0）没有任何子菜单时没有可展示的内容，直接丢弃，避免侧边栏出现点进去是空白的菜单
+      .filter((it) => !(it.info.type === 0 && !it.children?.length))
+      .map((it): RouteRecordRaw => {
+        return {
+          path: it.info.url,
+          name: it.info.id,
+          component: resolveComponent(it.info.component),
+          meta: {
+            title: it.title,
+            key: it.key,
+            icon: it.info.icon,
+            single: !!it.info.isSingle,
+            hidden: !it.info.hidden,
+            orderNo: it.info.orderNum as number,
+            frameSrc: it.info.frameSrc,
+            frameBlank: it.info.frameBlank === 0,
+            // 0=目录 1=菜单，用于计算登录后的默认落地页
+            type: it.info.type,
+          },
+          children: it.children?.length ? generatorRoutes(it.children) : undefined,
+        };
+      })
+  );
 }

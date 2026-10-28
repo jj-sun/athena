@@ -11,6 +11,8 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.crypto.SecureUtil;
 import com.athena.common.annotation.Log;
 import com.athena.common.constant.SecurityConstant;
+import com.athena.common.utils.ClientIpResolver;
+import com.athena.common.utils.RateLimitService;
 import com.athena.common.utils.RedisUtils;
 import com.athena.common.utils.Result;
 import com.athena.modules.sys.entity.SysUser;
@@ -33,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 /**
  * 登录相关
@@ -52,6 +55,9 @@ public class SysLoginController {
 	/** 验证码有效期（秒） */
 	private static final long CAPTCHA_EXPIRE_SECONDS = 5 * 60L;
 
+	/** checkKey 只允许字母、数字、下划线与连字符，最长 64，避免被用来膨胀 Redis 键 */
+	private static final Pattern CHECK_KEY_PATTERN = Pattern.compile("^[A-Za-z0-9_-]{1,64}$");
+
 	/**
 	 * 用于抹平响应时间差的固定 BCrypt 哈希。
 	 * 用户不存在时对固定值执行一次 checkpw，使耗时与"用户存在但密码错误"一致。
@@ -67,6 +73,18 @@ public class SysLoginController {
 
 	@Resource
 	private RedisUtils redisUtils;
+
+	@Autowired
+	private ClientIpResolver clientIpResolver;
+
+	@Autowired
+	private RateLimitService rateLimitService;
+
+	@Value("${athena.security.captcha-rate-limit:10}")
+	private int captchaRateLimit;
+
+	@Value("${athena.security.captcha-rate-window-seconds:60}")
+	private long captchaRateWindowSeconds;
 
 	@Value("${athena.rsa.private-key}")
 	private String rsaPrivateKey;
@@ -172,11 +190,19 @@ public class SysLoginController {
 	 * 验证码
 	 */
 	@GetMapping("/captcha")
-	public Result<?> captcha(String checkKey) {
-		if (StringUtils.isBlank(checkKey)) {
-			// checkKey 为空会让 key 退化成 md5("null:code")，所有不带 key 的客户端共用同一键空间
-			return Result.error("缺少 checkKey");
+	public Result<?> captcha(String checkKey, HttpServletRequest request) {
+		if (StringUtils.isBlank(checkKey) || !CHECK_KEY_PATTERN.matcher(checkKey).matches()) {
+			// checkKey 为空会退化成 md5("null:code")，超长/非法值则会被用来膨胀 Redis 键空间
+			return Result.error("无效的 checkKey");
 		}
+
+		// 按客户端 IP 限流，防止匿名用户无限生成验证码（CPU 与 Redis 内存消耗）
+		String clientIp = clientIpResolver.resolve(request);
+		if (!rateLimitService.tryAcquire("sys:rate:captcha:" + clientIp,
+				captchaRateLimit, captchaRateWindowSeconds)) {
+			return Result.error(429, "请求过于频繁，请稍后再试");
+		}
+
 		LineCaptcha captcha = CaptchaUtil.createLineCaptcha(200, 100);
 		// 统一按小写存储：Hutool 生成的验证码含大小写字母，而校验时按小写比对，
 		// 若此处存原始大小写，凡是含大写字母的验证码都会校验失败（表现为偶发登录失败）。

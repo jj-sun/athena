@@ -11,6 +11,19 @@ export interface SysScheduleJob {
   ctime?: string;
 }
 
+export interface SysScheduleJobLog {
+  id: string;
+  jobId: string;
+  beanName: string;
+  parameter?: string;
+  /** 0：成功，1：失败 */
+  status: number;
+  error?: string;
+  /** 耗时（毫秒） */
+  times?: number;
+  ctime?: string;
+}
+
 export interface TaskBeanOption {
   beanName: string;
   className: string;

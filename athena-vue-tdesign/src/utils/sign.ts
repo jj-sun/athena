@@ -8,6 +8,24 @@ function isEmpty(value: unknown): boolean {
   return value === null || value === undefined || value === '';
 }
 
+/**
+ * 解析 URL 中的查询参数。
+ *
+ * 后端验签使用 request.getParamMap()，其中包含 URL 上的查询参数（同名参数取第一个值）。
+ * 因此签名不能只看 axios 的 config.params，否则所有把参数拼在 URL 里的请求都会验签失败。
+ */
+export function parseUrlParams(url: string): Record<string, string> {
+  const index = url.indexOf('?');
+  if (index < 0) return {};
+  const search = new URLSearchParams(url.slice(index + 1));
+  const params: Record<string, string> = {};
+  search.forEach((value, key) => {
+    // 与服务端一致：同名参数只取第一个
+    if (!(key in params)) params[key] = value;
+  });
+  return params;
+}
+
 /** 生成 32 位随机 nonce（16 字节 → 32 位小写 hex） */
 export function randomNonce(): string {
   const bytes = new Uint8Array(16);

@@ -25,6 +25,7 @@
         </t-tooltip>
         <t-tooltip content="立即刷新">
           <t-button
+            v-permission="['sys:monitor:metrics', 'sys:monitor:redis']"
             theme="primary"
             shape="square"
             :loading="activeRefreshing"
@@ -87,7 +88,10 @@
                   <span class="metric-card__icon metric-card__icon--warning"><server-icon /></span>
                   <span>JVM 堆内存</span>
                 </div>
-                <div v-if="overview?.heapMemoryUsed !== null" class="metric-card__value">
+                <div
+                  v-if="overview?.heapMemoryUsed !== null && overview?.heapMemoryUsed !== undefined"
+                  class="metric-card__value"
+                >
                   {{ formatBytes(overview?.heapMemoryUsed) }}
                 </div>
                 <div v-else class="metric-card__empty">--</div>
@@ -269,7 +273,10 @@
                   <span class="metric-card__icon metric-card__icon--warning"><hard-disk-storage-icon /></span>
                   <span>Redis 内存</span>
                 </div>
-                <div v-if="redisSnapshot?.usedMemory !== null" class="metric-card__value">
+                <div
+                  v-if="redisSnapshot?.usedMemory !== null && redisSnapshot?.usedMemory !== undefined"
+                  class="metric-card__value"
+                >
                   {{ formatBytes(redisSnapshot?.usedMemory) }}
                 </div>
                 <div v-else class="metric-card__empty">--</div>
@@ -540,7 +547,9 @@ const diskUsed = computed(() => {
   return Math.max(total - free, 0);
 });
 const diskUsagePercent = computed(() => calculateUsagePercentage(diskUsed.value, overview.value?.diskTotal));
-const activeRefreshing = computed(() => (activeTab.value === 'system' ? refreshing.value : redisRefreshing.value));
+const activeRefreshing = computed(() =>
+  activeTab.value === 'system' ? refreshing.value : redisRefreshing.value || redisInitialLoading.value,
+);
 const activeConnectionHealthy = computed(() =>
   activeTab.value === 'system' ? connectionHealthy.value : redisConnectionHealthy.value,
 );

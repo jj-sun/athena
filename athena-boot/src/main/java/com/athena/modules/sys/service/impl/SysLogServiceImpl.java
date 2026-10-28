@@ -12,6 +12,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 
 /**
  * @author Mr.sun
@@ -24,7 +26,11 @@ public class SysLogServiceImpl extends ServiceImpl<SysLogMapper, SysLog> impleme
 
         IPage<SysLog> page = this.page(
             new Query<SysLog>().getPage(pageDto, "create_date", false),
-                new LambdaQueryWrapper<SysLog>().like(StringUtils.isNotBlank(sysLog.getOperation()), SysLog::getOperation, sysLog.getOperation())
+                new LambdaQueryWrapper<SysLog>()
+                        .like(StringUtils.isNotBlank(sysLog.getUsername()), SysLog::getUsername, sysLog.getUsername())
+                        // -1 / null 表示“全部”，不参与过滤
+                        .eq(Objects.nonNull(sysLog.getLogType()) && sysLog.getLogType() >= 0, SysLog::getLogType, sysLog.getLogType())
+                        .like(StringUtils.isNotBlank(sysLog.getOperation()), SysLog::getOperation, sysLog.getOperation())
         );
 
         return new PageUtils(page);

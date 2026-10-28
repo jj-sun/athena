@@ -3,12 +3,12 @@
     <t-card>
       <table-header :table-columns="tableColumns" :show-message="false" @do-refresh="loadData">
         <template #action>
-          <t-button theme="primary" @click="onAdd">
+          <t-button v-permission="'sys:dept:save'" theme="primary" @click="onAdd">
             <template #icon><plus-icon /></template>
             新增
           </t-button>
           <t-dropdown>
-            <t-button>
+            <t-button v-permission="'sys:dept:delete'">
               批量操作
               <template #suffix><more-icon /></template>
             </t-button>
@@ -39,8 +39,18 @@
         </template>
         <template #actions="{ row }">
           <t-space>
-            <t-button theme="primary" ghost size="small" @click="onEdit(row)">编辑</t-button>
-            <t-button theme="danger" ghost size="small" @click="onDelete(row)">删除</t-button>
+            <t-button
+              v-permission="['sys:dept:info', 'sys:dept:update']"
+              theme="primary"
+              ghost
+              size="small"
+              @click="onEdit(row)"
+            >
+              编辑
+            </t-button>
+            <t-button v-permission="'sys:dept:delete'" theme="danger" ghost size="small" @click="onDelete(row)">
+              删除
+            </t-button>
           </t-space>
         </template>
       </t-enhanced-table>
@@ -50,7 +60,11 @@
       <template #content>
         <t-form ref="formRef" :data="departmentModel" :rules="rules" :label-col="{ span: 6 }">
           <t-form-item label="上级部门" name="parentId">
-            <dept-select v-model:value="departmentModel.parentId" :disabled="departmentModel.parentId === '0'" />
+            <dept-select
+              v-model:value="departmentModel.parentId"
+              include-root
+              :disabled="!isAdd && departmentModel.parentId === '0'"
+            />
           </t-form-item>
           <t-form-item label="部门名称" name="deptName">
             <t-input v-model:value="departmentModel.deptName" placeholder="请输入部门名称" />
@@ -212,7 +226,7 @@ function onEdit(item: SysDept) {
         parentId: dept.parentId,
         deptName: dept.deptName,
         deptCode: dept.deptCode,
-        sortOrder: dept.sortOrder || 1,
+        sortOrder: dept.sortOrder ?? 1,
         description: dept.description || '',
       });
       modalDialogRef.value?.toggle();
@@ -236,9 +250,9 @@ async function onSubmit() {
       }
       modalDialogRef.value?.close();
       loadData();
-    } catch (err) {
+    } catch (err: any) {
       console.log('部门操作失败', err);
-      await MessagePlugin.error('部门操作失败');
+      await MessagePlugin.error(err?.message || '部门操作失败');
     }
   }
 }
@@ -261,9 +275,9 @@ function onDelete(item: SysDept) {
           MessagePlugin.success('部门删除成功');
           loadData();
         })
-        .catch((err) => {
+        .catch((err: any) => {
           console.log('部门删除失败', err);
-          MessagePlugin.error('部门删除失败');
+          MessagePlugin.error(err?.message || '部门删除失败');
         })
         .finally(() => {
           confirmDia.destroy();
@@ -289,9 +303,9 @@ function onBatchDelete() {
           loadData();
           onClearSelected();
         })
-        .catch((err) => {
+        .catch((err: any) => {
           console.log('部门批量删除失败', err);
-          MessagePlugin.error('部门批量删除失败');
+          MessagePlugin.error(err?.message || '部门批量删除失败');
         })
         .finally(() => {
           confirmDia.destroy();

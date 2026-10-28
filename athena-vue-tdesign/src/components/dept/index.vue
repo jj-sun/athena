@@ -6,18 +6,18 @@
     :disabled="disabled"
     :filterable="filterable"
     :data="deptTree"
-    :keys="{ value: 'id', label: 'deptName' }"
+    :keys="{ value: 'key', label: 'title' }"
     :loading="loading"
     v-bind="restAttrs"
     @change="onChange"
   />
 </template>
 <script setup lang="ts">
-import type { TreeSelectProps } from 'tdesign-vue-next';
+import type { TreeSelectProps, TreeSelectValue } from 'tdesign-vue-next';
 import { computed, onMounted, ref, useAttrs } from 'vue';
 
-import { getDeptList } from '@/api/system/dept';
-import type { SysDept } from '@/types/system';
+import { getDeptSelect } from '@/api/system/dept';
+import type { SysDeptTree } from '@/types/system';
 
 interface Props {
   modelValue?: string | undefined;
@@ -25,6 +25,8 @@ interface Props {
   clearable?: boolean;
   disabled?: boolean;
   filterable?: boolean;
+  /** 是否在树根部提供“顶级部门”选项（值 0），用于新建一级部门 */
+  includeRoot?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -33,6 +35,7 @@ const props = withDefaults(defineProps<Props>(), {
   clearable: true,
   disabled: false,
   filterable: true,
+  includeRoot: false,
 });
 
 const emit = defineEmits<{
@@ -42,7 +45,7 @@ const emit = defineEmits<{
 
 const attrs = useAttrs();
 
-const deptTree = ref<Array<SysDept>>([]);
+const deptTree = ref<Array<SysDeptTree>>([]);
 const loading = ref<boolean>(false);
 
 const restAttrs = computed(() => {
@@ -65,21 +68,42 @@ const innerValue = computed<string | undefined>({
 async function loadDeptTree() {
   loading.value = true;
   try {
-    const res = await getDeptList();
-    deptTree.value = res;
+    const res = (await getDeptSelect()) ?? [];
+    deptTree.value = props.includeRoot
+      ? [
+          {
+            info: {
+              id: '0',
+              parentId: '0',
+              deptName: '顶级部门',
+              deptCode: '',
+              description: '',
+              sortOrder: 0,
+            },
+            key: '0',
+            parentKey: '0',
+            title: '顶级部门',
+            disabled: false,
+            children: res,
+          },
+        ]
+      : res;
   } catch (error) {
     console.error('加载部门失败', error);
+    deptTree.value = [];
   } finally {
     loading.value = false;
   }
 }
 
 function onChange(
-  value: string | undefined,
+  value: TreeSelectValue | undefined,
   context: TreeSelectProps['onChange'] extends (v: any, ctx: infer C) => void ? C : never,
 ) {
-  emit('update:modelValue', value);
-  emit('change', value, context);
+  // 部门树的 value 是字符串 id，多选/对象值不在本组件的使用范围内
+  const nextValue = typeof value === 'string' ? value : undefined;
+  emit('update:modelValue', nextValue);
+  emit('change', nextValue, context);
 }
 
 onMounted(loadDeptTree);

@@ -8,8 +8,10 @@ import com.athena.modules.sys.mapper.SysRoleMapper;
 import com.athena.modules.sys.service.SysRolePermissionService;
 import com.athena.modules.sys.service.SysRoleService;
 import com.athena.modules.sys.service.SysUserRoleService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +34,10 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
 	public PageUtils queryPage(SysRole role, PageDto pageDto) {
 
 		IPage<SysRole> page = this.page(
-			new Query<SysRole>().getPage(pageDto, "ctime", false)
+			new Query<SysRole>().getPage(pageDto, "ctime", false),
+			new LambdaQueryWrapper<SysRole>()
+				.like(StringUtils.isNotBlank(role.getRoleName()), SysRole::getRoleName, role.getRoleName())
+				.like(StringUtils.isNotBlank(role.getRoleCode()), SysRole::getRoleCode, role.getRoleCode())
 		);
 
 		return new PageUtils(page);

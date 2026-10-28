@@ -1,7 +1,13 @@
 <template>
   <div :class="prefixCls" :style="getWrapStyle">
     <t-loading :loading="loading" size="large" :style="getWrapStyle">
-      <iframe ref="frameRef" :src="frameSrc" :class="`${prefixCls}__main`" @load="hideLoading"></iframe>
+      <iframe
+        ref="frameRef"
+        :src="safeFrameSrc"
+        :class="`${prefixCls}__main`"
+        referrerpolicy="no-referrer"
+        @load="hideLoading"
+      ></iframe>
     </t-loading>
   </div>
 </template>
@@ -14,11 +20,20 @@ import { computed, ref, unref, watch } from 'vue';
 import { prefix } from '@/config/global';
 import { useSettingStore } from '@/store';
 
-defineProps({
+const props = defineProps({
   frameSrc: {
     type: String,
     default: '',
   },
+});
+
+/**
+ * 只允许 http/https 地址进入 iframe。
+ * 服务端保存菜单时已做同样校验，这里是纵深防御，避免历史脏数据或其它写入路径绕过。
+ */
+const safeFrameSrc = computed(() => {
+  const src = props.frameSrc || '';
+  return /^https?:\/\//i.test(src) ? src : '';
 });
 
 const { width, height } = useWindowSize();

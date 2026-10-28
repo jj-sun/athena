@@ -8,7 +8,8 @@ import { MessagePlugin } from 'tdesign-vue-next';
 import { USER_TOKEN_KEY } from '@/constants';
 import router from '@/router';
 import { useUserStore } from '@/store';
-import { randomNonce, signParams } from './sign';
+
+import { parseUrlParams, randomNonce, signParams } from './sign';
 
 const baseURL: string = import.meta.env.VITE_API_URL || '/athena';
 export const CONTENT_TYPE = 'Content-Type';
@@ -59,7 +60,11 @@ service.interceptors.request.use(
       const timestamp = String(Date.now());
       const nonce = randomNonce();
       const queryParams = (config.params ?? {}) as Record<string, unknown>;
-      const sign = await signParams({ ...queryParams, timestamp, nonce }, secret);
+      // 后端验签包含 URL 上的查询参数（如 `?roleId=…`），这些参数不在 config.params 里，
+      // 必须一并纳入签名，否则会返回「无效签名」。
+      // 真实请求中 URL 自带参数排在 config.params 之前，服务端同名取第一个值，因此以 URL 为准。
+      const urlParams = config.url ? parseUrlParams(config.url) : {};
+      const sign = await signParams({ ...queryParams, ...urlParams, timestamp, nonce }, secret);
       config.params = { ...queryParams, timestamp, nonce, sign };
     }
 

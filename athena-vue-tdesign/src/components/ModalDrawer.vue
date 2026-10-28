@@ -9,6 +9,7 @@
     confirm-btn="确定"
     @confirm="onConfirm"
     @cancel="onCancel"
+    @close="onClose"
   >
     <div :style="{ overflow: 'auto' }">
       <slot name="content"></slot>
@@ -30,7 +31,7 @@ export default defineComponent({
       default: 'small',
     },
   },
-  emits: ['confirm', 'cancel'],
+  emits: ['confirm', 'cancel', 'close'],
   setup(props, { emit }) {
     const showModal = ref(false);
     const bodyStyle = computed(() => ({
@@ -55,6 +56,10 @@ export default defineComponent({
       showModal.value = false;
       emit('cancel');
     }
+    function onClose() {
+      showModal.value = false;
+      emit('close');
+    }
     return {
       showModal,
       bodyStyle,
@@ -63,6 +68,7 @@ export default defineComponent({
       close,
       onConfirm,
       onCancel,
+      onClose,
     };
   },
 });

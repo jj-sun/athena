@@ -1,4 +1,4 @@
-import type { SysDept } from '@/types/system';
+import type { SysDept, SysDeptTree } from '@/types/system';
 import { DELETE, GET, POST, PUT } from '@/utils/http';
 
 const deptApi = {
@@ -15,8 +15,9 @@ export function getDeptList() {
   return GET(deptApi.list);
 }
 
-export function deleteBatch() {
-  return GET(deptApi.select);
+/** 部门选择树（轻量结构，需要 sys:dept:select 权限） */
+export function getDeptSelect() {
+  return GET<SysDeptTree[]>(deptApi.select);
 }
 
 export function getDeptInfo(id: string) {

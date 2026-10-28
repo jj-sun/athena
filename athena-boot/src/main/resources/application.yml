@@ -25,7 +25,14 @@ athena:
   dict:
     # 允许 @Dict(dictTable=...) 动态翻译的字典表白名单（逗号分隔）。
     # 这些表名会被拼进 SysDictMapper 的 ${table}，必须显式列出，新增字典表时在此追加。
-    allowed-tables: sys_dept
+    allowed-tables: sys_dept,sys_user
+  security:
+    # trusted-proxies 属于环境差异项，已下沉到各 profile：
+    #   dev（直连）           → 留空，不信任任何转发头
+    #   test/prod（nginx 之后）→ 配置代理出口地址/网段
+    # 验证码按客户端 IP 限流：窗口内最多 N 次，窗口长度（秒）。设为 0 表示关闭。
+    captcha-rate-limit: 10
+    captcha-rate-window-seconds: 60
   rsa:
     # 安全提示（待整改）：RSA 私钥以明文提交在代码库中，等于公开。前端用它做“加密”只是
     # 混淆而非安全边界 —— 任何拿到仓库的人都能解密抓包内容。应改为从环境变量/密钥管理注入。

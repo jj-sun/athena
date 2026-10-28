@@ -25,9 +25,9 @@ export default [
     component: () => import('@/views/result/403/index.vue'),
   },
   {
+    // 首页不写死重定向：不同角色可访问的菜单不同，由路由守卫按权限跳到第一个可访问页面
     path: '/',
     component: Layout,
     name: 'root',
-    redirect: '/dashboard/analysis',
   },
 ];

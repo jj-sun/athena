@@ -1,6 +1,6 @@
 <template>
   <div class="main-container">
-    <table-search @search="loadData" @reset-search="resetSearch">
+    <table-search @search="onSearch" @reset-search="resetSearch">
       <template #search-content>
         <t-col :span="3">
           <t-form-item label="用户名" style="width: 100%">
@@ -19,14 +19,7 @@
       </template>
     </table-search>
     <t-card>
-      <table-header :table-columns="tableColumns" :show-message="false" @do-refresh="loadData">
-        <template #action>
-          <t-button theme="primary">
-            <template #icon><download-icon /></template>
-            导出
-          </t-button>
-        </template>
-      </table-header>
+      <table-header :table-columns="tableColumns" :show-message="false" @do-refresh="loadData" />
       <t-table
         :loading="tableLoading"
         :data="dataList"
@@ -44,7 +37,6 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { DownloadIcon } from 'tdesign-icons-vue-next';
 import { MessagePlugin } from 'tdesign-vue-next';
 import { onMounted, reactive } from 'vue';
 
@@ -106,9 +98,15 @@ const tableColumns = useTableColumn(
   { align: 'center' },
 );
 
+function onSearch() {
+  pagination.current = 1;
+  loadData();
+}
+
 function resetSearch() {
   searchForm.username = '';
   searchForm.logType = undefined;
+  pagination.current = 1;
   loadData();
 }
 

@@ -1,5 +1,11 @@
+import type { BaseTree } from '@/types/interface';
 import { GET } from '@/utils/http';
 
+export interface NavMenuResponse {
+  menuTree: BaseTree[];
+  permissions: string[];
+}
+
 export function getNavMenu() {
-  return GET('/sys/permission/nav');
+  return GET<NavMenuResponse>('/sys/permission/nav');
 }
