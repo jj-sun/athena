@@ -301,14 +301,6 @@ const rules: FormProps['rules'] = {
       type: 'error',
     },
   ],
-  roleIdList: [
-    {
-      required: true,
-      message: '角色必选',
-      type: 'error',
-      trigger: 'change',
-    },
-  ],
 };
 
 const passwordDialogVisible = ref(false);

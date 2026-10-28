@@ -22,7 +22,7 @@ public class SysUserRoleServiceImpl extends ServiceImpl<SysUserRoleMapper, SysUs
 		//先删除用户与角色关系
 		this.remove(new LambdaQueryWrapper<SysUserRole>().eq(SysUserRole::getUserId, userId));
 
-		if(roleIdList == null || roleIdList.size() == 0){
+		if(roleIdList == null || roleIdList.isEmpty()){
 			return ;
 		}
 
