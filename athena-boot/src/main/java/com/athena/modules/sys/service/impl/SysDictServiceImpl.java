@@ -5,7 +5,6 @@ import com.athena.common.exception.RRException;
 import com.athena.common.utils.PageUtils;
 import com.athena.common.utils.Query;
 import com.athena.common.vo.DictModel;
-import com.athena.common.vo.DictModelMany;
 import com.athena.common.xss.SQLFilter;
 import com.athena.modules.sys.entity.SysDict;
 import com.athena.modules.sys.entity.SysDictItem;
@@ -14,16 +13,13 @@ import com.athena.modules.sys.service.SysDictItemService;
 import com.athena.modules.sys.service.SysDictService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.repository.CrudRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Mr.sun
@@ -31,7 +27,7 @@ import java.util.Map;
  * @description
  */
 @Service
-public class SysDictServiceImpl extends ServiceImpl<SysDictMapper, SysDict> implements SysDictService {
+public class SysDictServiceImpl extends CrudRepository<SysDictMapper, SysDict> implements SysDictService {
 
     @Autowired
     private SysDictItemService dictItemService;

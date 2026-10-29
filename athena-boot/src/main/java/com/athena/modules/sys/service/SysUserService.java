@@ -3,7 +3,7 @@ package com.athena.modules.sys.service;
 import com.athena.common.base.dto.PageDto;
 import com.athena.common.utils.PageUtils;
 import com.athena.modules.sys.entity.SysUser;
-import com.baomidou.mybatisplus.extension.service.IService;
+import com.baomidou.mybatisplus.extension.repository.IRepository;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ import java.util.List;
  *
  * @author Mr.sun
  */
-public interface SysUserService extends IService<SysUser> {
+public interface SysUserService extends IRepository<SysUser> {
 
 	PageUtils queryPage(SysUser user, PageDto pageDto);
 

@@ -10,7 +10,7 @@ import com.athena.modules.sys.mapper.SysUserMapper;
 import com.athena.modules.sys.service.SysDeptService;
 import com.athena.modules.sys.vo.SysDeptTree;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.repository.CrudRepository;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  * @description
  */
 @Service
-public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> implements SysDeptService {
+public class SysDeptServiceImpl extends CrudRepository<SysDeptMapper, SysDept> implements SysDeptService {
 
     @Autowired
     private SysUserMapper sysUserMapper;

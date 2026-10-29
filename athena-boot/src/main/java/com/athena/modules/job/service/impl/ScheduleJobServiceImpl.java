@@ -12,7 +12,7 @@ import com.athena.modules.job.task.ITask;
 import com.athena.modules.job.utils.ScheduleUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.repository.CrudRepository;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.CronExpression;
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * @author Mr.sun
  */
 @Service
-public class ScheduleJobServiceImpl extends ServiceImpl<ScheduleJobMapper, ScheduleJob> implements ScheduleJobService {
+public class ScheduleJobServiceImpl extends CrudRepository<ScheduleJobMapper, ScheduleJob> implements ScheduleJobService {
 	@Autowired
     private Scheduler scheduler;
 

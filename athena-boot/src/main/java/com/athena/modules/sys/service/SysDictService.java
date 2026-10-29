@@ -4,17 +4,14 @@ import com.athena.common.base.dto.PageDto;
 import com.athena.common.utils.PageUtils;
 import com.athena.common.vo.DictModel;
 import com.athena.modules.sys.entity.SysDict;
-import com.baomidou.mybatisplus.extension.service.IService;
-
-import java.util.List;
-import java.util.Map;
+import com.baomidou.mybatisplus.extension.repository.IRepository;
 
 /**
  * @author Mr.sun
  * @date 2022/1/19 19:58
  * @description
  */
-public interface SysDictService extends IService<SysDict> {
+public interface SysDictService extends IRepository<SysDict> {
 
     PageUtils queryPage(SysDict dict, PageDto pageDto);
 

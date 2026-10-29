@@ -3,12 +3,11 @@ package com.athena.modules.sys.service.impl;
 import com.athena.modules.sys.entity.SysRolePermission;
 import com.athena.modules.sys.mapper.SysRolePermissionMapper;
 import com.athena.modules.sys.service.SysRolePermissionService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
 
 
 /**
@@ -17,7 +16,7 @@ import java.util.List;
  * @author Mr.sun
  */
 @Service
-public class SysRolePermissionServiceImpl extends ServiceImpl<SysRolePermissionMapper, SysRolePermission> implements SysRolePermissionService {
+public class SysRolePermissionServiceImpl extends CrudRepository<SysRolePermissionMapper, SysRolePermission> implements SysRolePermissionService {
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)

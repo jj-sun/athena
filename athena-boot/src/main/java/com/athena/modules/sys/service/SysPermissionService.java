@@ -5,7 +5,7 @@ package com.athena.modules.sys.service;
 
 import com.athena.modules.sys.entity.SysPermission;
 import com.athena.modules.sys.vo.SysMenuTree;
-import com.baomidou.mybatisplus.extension.service.IService;
+import com.baomidou.mybatisplus.extension.repository.IRepository;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import java.util.List;
  *
  * @author Mr.sun
  */
-public interface SysPermissionService extends IService<SysPermission> {
+public interface SysPermissionService extends IRepository<SysPermission> {
 
 	List<SysPermission> permissionTree();
 

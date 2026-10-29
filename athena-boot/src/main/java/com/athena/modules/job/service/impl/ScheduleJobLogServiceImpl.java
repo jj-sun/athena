@@ -8,7 +8,7 @@ import com.athena.modules.job.mapper.ScheduleJobLogMapper;
 import com.athena.modules.job.service.ScheduleJobLogService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.repository.CrudRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +18,7 @@ import java.util.Objects;
  * @author Mr.sun
  */
 @Service("scheduleJobLogService")
-public class ScheduleJobLogServiceImpl extends ServiceImpl<ScheduleJobLogMapper, ScheduleJobLog> implements ScheduleJobLogService {
+public class ScheduleJobLogServiceImpl extends CrudRepository<ScheduleJobLogMapper, ScheduleJobLog> implements ScheduleJobLogService {
 
 	@Override
 	public PageUtils queryPage(ScheduleJobLog scheduleJobLog, PageDto pageDto) {

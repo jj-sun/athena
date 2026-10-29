@@ -8,7 +8,7 @@ import com.athena.modules.sys.mapper.SysLogMapper;
 import com.athena.modules.sys.service.SysLogService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.repository.CrudRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +19,7 @@ import java.util.Objects;
  * @author Mr.sun
  */
 @Service
-public class SysLogServiceImpl extends ServiceImpl<SysLogMapper, SysLog> implements SysLogService {
+public class SysLogServiceImpl extends CrudRepository<SysLogMapper, SysLog> implements SysLogService {
 
     @Override
     public PageUtils queryPage(SysLog sysLog, PageDto pageDto) {

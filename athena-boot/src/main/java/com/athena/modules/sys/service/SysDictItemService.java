@@ -3,14 +3,14 @@ package com.athena.modules.sys.service;
 import com.athena.common.base.dto.PageDto;
 import com.athena.common.utils.PageUtils;
 import com.athena.modules.sys.entity.SysDictItem;
-import com.baomidou.mybatisplus.extension.service.IService;
+import com.baomidou.mybatisplus.extension.repository.IRepository;
 
 /**
  * @author Mr.sun
  * @date 2022/1/19 19:58
  * @description
  */
-public interface SysDictItemService extends IService<SysDictItem> {
+public interface SysDictItemService extends IRepository<SysDictItem> {
 
     PageUtils queryPage(SysDictItem dictItem, PageDto pageDto);
 

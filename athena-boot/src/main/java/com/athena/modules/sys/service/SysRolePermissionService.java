@@ -1,10 +1,9 @@
 package com.athena.modules.sys.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.athena.modules.sys.entity.SysRolePermission;
+import com.baomidou.mybatisplus.extension.repository.IRepository;
 
 import java.util.List;
-
 
 
 /**
@@ -12,7 +11,7 @@ import java.util.List;
  *
  * @author Mr.sun
  */
-public interface SysRolePermissionService extends IService<SysRolePermission> {
+public interface SysRolePermissionService extends IRepository<SysRolePermission> {
 	
 	void saveOrUpdate(String roleId, List<String> permissionIds);
 	

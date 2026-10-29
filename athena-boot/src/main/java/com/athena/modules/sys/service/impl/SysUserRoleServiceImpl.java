@@ -4,7 +4,7 @@ import com.athena.modules.sys.entity.SysUserRole;
 import com.athena.modules.sys.mapper.SysUserRoleMapper;
 import com.athena.modules.sys.service.SysUserRoleService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.List;
  * @author Mr.sun
  */
 @Service
-public class SysUserRoleServiceImpl extends ServiceImpl<SysUserRoleMapper, SysUserRole> implements SysUserRoleService {
+public class SysUserRoleServiceImpl extends CrudRepository<SysUserRoleMapper, SysUserRole> implements SysUserRoleService {
 
 	@Override
 	public void saveOrUpdate(String userId, List<String> roleIdList) {

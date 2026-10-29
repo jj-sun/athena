@@ -88,7 +88,7 @@ public class PermissionTest {
     @Test
     public void insertSystemChildren() {
         List<SysPermission> list = buildSystemMenu();
-        permissionService.saveBatch(list);
+        permissionService.saveBatch(list, 10);
     }
 
 }

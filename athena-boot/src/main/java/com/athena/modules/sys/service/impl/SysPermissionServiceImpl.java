@@ -11,17 +11,13 @@ import com.athena.modules.sys.service.SysPermissionService;
 import com.athena.modules.sys.service.SysRolePermissionService;
 import com.athena.modules.sys.vo.SysMenuTree;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.repository.CrudRepository;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -29,7 +25,7 @@ import java.util.stream.Collectors;
  * @author Mr.sun
  */
 @Service
-public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, SysPermission> implements SysPermissionService {
+public class SysPermissionServiceImpl extends CrudRepository<SysPermissionMapper, SysPermission> implements SysPermissionService {
 
 	/**
 	 * 强制菜单：仪表盘目录 + 概览首页。

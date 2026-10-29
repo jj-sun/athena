@@ -5,7 +5,7 @@ package com.athena.modules.job.service;
 import com.athena.common.base.dto.PageDto;
 import com.athena.common.utils.PageUtils;
 import com.athena.modules.job.entity.ScheduleJob;
-import com.baomidou.mybatisplus.extension.service.IService;
+import com.baomidou.mybatisplus.extension.repository.IRepository;
 
 import java.util.List;
 import java.util.Map;
@@ -15,7 +15,7 @@ import java.util.Map;
  *
  * @author Mr.sun
  */
-public interface ScheduleJobService extends IService<ScheduleJob> {
+public interface ScheduleJobService extends IRepository<ScheduleJob> {
 
 	PageUtils queryPage(ScheduleJob scheduleJob, PageDto pageDto);
 
