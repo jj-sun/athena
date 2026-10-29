@@ -27,8 +27,8 @@ public final class PublicPaths {
     /**
      * 静态资源。前端通过 URL 直接引用这些资源时不会携带 token。
      *
-     * <p><b>刻意不包含 {@code /**.html}</b>：Knife4j 的 UI 页面（{@code /doc.html}）是随
-     * knife4j-openapi3-ui 的 jar 以静态资源形式提供的，即使 {@code knife4j.enable=false}、
+     * <p><b>刻意不包含 {@code /**.html}</b>：nextdoc4j 的 UI 页面（{@code /doc.html}）是随
+     * nextdoc4j-ui 的 jar 以静态资源形式提供的，即使 {@code nextdoc4j.enabled=false}、
      * springdoc 已关闭，该 HTML 外壳仍会被服务出来。之前 {@code /**.html} 在免登录白名单里，
      * 导致生产环境仍能匿名打开文档页面（实测确认）。移除该通配后：dev 环境由 {@link #API_DOCS}
      * 在 {@code expose-api-docs=true} 时单独放行，生产环境则要求登录，文档页面不再公开。
@@ -53,6 +53,8 @@ public final class PublicPaths {
      */
     private static final List<String> API_DOCS = List.of(
             "/doc.html",
+            // nextdoc4j 的前端资源（JS/CSS/字体/图片），由 nextdoc4j-ui 的 jar 提供
+            "/nextdoc/**",
             "/swagger-ui.html",
             "/swagger**/**",
             "/webjars/**",

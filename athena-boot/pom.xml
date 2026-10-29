@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.1.0</version>
+		<version>4.1.2</version>
 	</parent>
 
 	<properties>
@@ -26,7 +26,7 @@
 		<quartz.version>2.3.2</quartz.version>
 		<commons.fileupload.version>1.6.0</commons.fileupload.version>
 		<commons.io.version>2.16.1</commons.io.version>
-		<commons.configuration2.version>2.13.0</commons.configuration2.version>
+		<commons.configuration2.version>2.15.1</commons.configuration2.version>
 		<jwt.version>4.3.0</jwt.version>
 		<kaptcha.version>0.0.9</kaptcha.version>
 		<swagger.version>3.0.0</swagger.version>
@@ -46,7 +46,7 @@
 			<dependency>
 				<groupId>com.baomidou</groupId>
 				<artifactId>mybatis-plus-bom</artifactId>
-				<version>3.5.15</version>
+				<version>3.5.18</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -122,7 +122,7 @@
 		<dependency>
 			<groupId>cn.dev33</groupId>
 			<artifactId>sa-token-redis-template</artifactId>
-			<version>1.45.0</version>
+			<version>${sa-token.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>cn.dev33</groupId>
@@ -193,27 +193,20 @@
 			<artifactId>commons-configuration2</artifactId>
 			<version>${commons.configuration2.version}</version>
 		</dependency>
-		<!--<dependency>
-			<groupId>com.auth0</groupId>
-			<artifactId>java-jwt</artifactId>
-			<version>${jwt.version}</version>
-		</dependency>-->
-
-		<!--<dependency>
-			<groupId>io.springfox</groupId>
-			<artifactId>springfox-boot-starter</artifactId>
-			<version>${swagger.version}</version>
-			会导致because "this.condition" is null错误，boot 2.6.0以上不支持swagger
-		</dependency>-->
 		<dependency>
-			<groupId>com.alibaba</groupId>
-			<artifactId>easyexcel</artifactId>
-			<version>4.0.3</version>
+			<groupId>org.apache.fesod</groupId>
+			<artifactId>fesod-sheet</artifactId>
+			<version>2.1.0-incubating</version>
 		</dependency>
 		<dependency>
-			<groupId>com.github.xiaoymin</groupId>
-			<artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
-			<version>4.3.0</version>
+			<groupId>top.nextdoc4j</groupId>
+			<artifactId>nextdoc4j-spring-boot-starter</artifactId>
+			<version>1.5.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>3.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>joda-time</groupId>
@@ -262,16 +255,6 @@
 			<artifactId>jspecify</artifactId>
 			<version>1.0.0</version>
 		</dependency>
-		<!--<dependency>
-			<groupId>org.jeecgframework.jimureport</groupId>
-			<artifactId>jimureport-spring-boot4-starter</artifactId>
-			<version>${jimureport.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.jeecgframework.jimureport</groupId>
-			<artifactId>jimubi-spring-boot4-starter</artifactId>
-			<version>${jimureport.version}</version>
-		</dependency>-->
 	</dependencies>
 
 	<build>
