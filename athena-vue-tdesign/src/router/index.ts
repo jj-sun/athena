@@ -41,7 +41,7 @@ export const getActive = (maxLevel = 3): string => {
 };
 
 const router = createRouter({
-  history: createWebHistory(env === 'site' ? '/starter/vue-next/' : import.meta.env.VITE_BASE_URL),
+  history: createWebHistory(import.meta.env.VITE_BASE_URL),
   routes: constantRoutes,
   scrollBehavior() {
     return {

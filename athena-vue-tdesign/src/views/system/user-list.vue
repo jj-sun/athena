@@ -232,7 +232,7 @@ const searchForm = reactive({
   email: '',
 });
 
-const expandAllFlag = ref(false);
+const expandAllFlag = ref(true);
 const deptSearch = ref('');
 const selectedDeptKeys = ref([] as Array<string>);
 const departmentTree = ref([] as Array<any>);
@@ -607,6 +607,7 @@ onMounted(() => {
   loadData();
   // 仅在有对应权限时加载筛选/表单数据，避免无权限角色一进页面就弹 403
   const { permissions } = getPermissionStore();
+  console.log(permissions);
   if (permissions.includes('sys:dept:list')) {
     loadDeptTree();
   }

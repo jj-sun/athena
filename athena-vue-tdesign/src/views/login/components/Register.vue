@@ -109,7 +109,7 @@ const [countDown, handleCounter] = useCounter();
 const onSubmit = (ctx: SubmitContext) => {
   if (ctx.validateResult === true) {
     if (!formData.value.checked) {
-      MessagePlugin.error('请同意TDesign服务协议和TDesign 隐私声明');
+      MessagePlugin.error('请同意Athena服务协议和Athena 隐私声明');
       return;
     }
     MessagePlugin.success('注册成功');

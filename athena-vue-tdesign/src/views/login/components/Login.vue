@@ -109,6 +109,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { getCaptcha, login } from '@/api/base/auth';
 import { useCounter } from '@/hooks';
 import { useUserStore } from '@/store';
+import { resolveRedirectPath } from '@/utils/route/redirect';
 import { randomNonce } from '@/utils/sign';
 
 const userStore = useUserStore();
@@ -195,9 +196,8 @@ const onSubmit = (ctx: SubmitContext) => {
       .then((loginRes) => {
         userStore.saveUser(loginRes);
         MessagePlugin.success('登录成功');
-        const redirect = route.query.redirect as string;
-        const redirectUrl = redirect || '/';
-        router.replace(redirectUrl);
+        // 兼容历史双编码链接，并校验为站内绝对路径
+        router.replace(resolveRedirectPath(route.query.redirect));
       })
       .catch((err) => {
         console.log('登录失败', err);

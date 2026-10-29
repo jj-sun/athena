@@ -151,13 +151,14 @@ const handleLogout = () => {
   user.logout();
   router.push({
     path: '/login',
-    query: { redirect: encodeURIComponent(router.currentRoute.value.fullPath) },
+    // vue-router 序列化 query 时会自动编码，这里不能再 encodeURIComponent，否则会双编码
+    query: { redirect: router.currentRoute.value.fullPath },
   });
   NProgress.done();
 };
 
 const navToGitHub = () => {
-  window.open('https://github.com/tencent/tdesign-vue-next-starter');
+  window.open('https://github.com/jj-sun/athena');
 };
 </script>
 <style lang="less" scoped>

@@ -5,7 +5,6 @@ import { Color } from 'tvision-color';
 import type { TColorSeries } from '@/config/color';
 import { DARK_CHART_COLORS, LIGHT_CHART_COLORS } from '@/config/color';
 import STYLE_CONFIG from '@/config/style';
-import { store } from '@/store';
 import type { ModeType } from '@/types/interface';
 import { generateColorMap, insertThemeStylesheet } from '@/utils/color';
 
@@ -107,5 +106,6 @@ export const useSettingStore = defineStore('setting', {
 });
 
 export function getSettingStore() {
-  return useSettingStore(store);
+  // 不传 pinia：按当前 active pinia 取，避免 dev 期 HMR 模块副本导致的第二个空 store
+  return useSettingStore();
 }

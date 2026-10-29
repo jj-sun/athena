@@ -64,7 +64,8 @@ router.beforeEach(async (to, from, next) => {
         }
         tabsRouterStore.tabRouterList = tabs;
 
-        next({ path: to.fullPath, replace: true, query: to.query });
+        // 动态路由注册完成后，用原目标重新匹配一次；{ ...to } 会一并带上 query 和 hash
+        next({ ...to, replace: true });
         return;
       }
 
@@ -78,7 +79,9 @@ router.beforeEach(async (to, from, next) => {
       if (to.matched.length > 0) {
         next();
       } else {
-        // 访问了当前角色没有权限/不存在的地址，回退到默认首页而不是 /（/ 又会重定向，容易死循环）
+        // 动态路由只注册当前角色可访问的菜单，"无权限" 和 "路径不存在" 此时无法区分；
+        // 统一回退默认首页（回退到 / 会再次重定向，容易死循环），但打印日志便于排查
+        console.warn('[router] 未匹配到路由，回退默认首页:', to.fullPath);
         next({ path: permissionStore.getDefaultPath(), replace: true });
       }
       NProgress.done();

@@ -3,7 +3,6 @@ import type { RouteRecordRaw } from 'vue-router';
 
 import { getNavMenu } from '@/api/base/menu';
 import router, { asyncRouterList, baseRouterList } from '@/router';
-import { store } from '@/store';
 import { generatorRoutes } from '@/utils/route';
 
 /** 所有角色登录后的默认首页：仪表盘-概览 */
@@ -110,5 +109,6 @@ export const usePermissionStore = defineStore('permission', {
 });
 
 export function getPermissionStore() {
-  return usePermissionStore(store);
+  // 不传 pinia：按当前 active pinia 取，避免 dev 期 HMR 模块副本导致的第二个空 store
+  return usePermissionStore();
 }

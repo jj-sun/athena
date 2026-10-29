@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia';
 
-import { store } from '@/store';
 import type { TRouterInfo, TTabRouterType } from '@/types/interface';
 
 const state = {
@@ -83,5 +82,6 @@ export const useTabsRouterStore = defineStore('tabsRouter', {
 });
 
 export function getTabsRouterStore() {
-  return useTabsRouterStore(store);
+  // 不传 pinia：按当前 active pinia 取，避免 dev 期 HMR 模块副本导致的第二个空 store
+  return useTabsRouterStore();
 }
