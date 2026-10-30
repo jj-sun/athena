@@ -13,6 +13,7 @@ import com.athena.common.utils.Result;
 import com.athena.config.saToken.PublicPaths;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -26,7 +27,9 @@ public class CorsConfig implements WebMvcConfigurer {
                 .allowCredentials(false)
                 .allowedMethods("*")
                 .maxAge(3600)
-                .allowedHeaders("*");
+                .allowedHeaders("*")
+                // 允许前端跨域读取下载文件名
+                .exposedHeaders(HttpHeaders.CONTENT_DISPOSITION);
 
     }
 
@@ -62,7 +65,7 @@ public class CorsConfig implements WebMvcConfigurer {
                             // 有效时间
                             .setHeader("Access-Control-Max-Age", "3600")
                             .setHeader("Access-Control-Allow-Credentials", "false");
-                    SaRouter.match(SaHttpMethod.OPTIONS).free(r -> System.out.println("----OPTIONS预检请求，不做处理")).back();
+                    SaRouter.match(SaHttpMethod.OPTIONS).free(r -> {}).back();
                 });
     }
 

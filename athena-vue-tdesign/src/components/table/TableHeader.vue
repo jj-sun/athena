@@ -49,7 +49,7 @@ export default defineComponent({
     },
     tableColumns: {
       type: Array,
-      default: [],
+      default: (): any[] => [],
     },
     selectedRowSize: {
       type: Number,

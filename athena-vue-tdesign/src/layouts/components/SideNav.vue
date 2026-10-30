@@ -21,9 +21,6 @@
             <span style="font-weight: bold; font-size: 16px">athena-vue</span>
           </div>
         </div>
-        <!--        <span v-if="showLogo" :class="`${prefix}-side-nav-logo-wrapper`" @click="goHome">
-         <component :is="getLogo()" :class="logoCls" />
-       </span> -->
       </template>
       <menu-content :nav-data="menu" />
       <template #operations>
@@ -40,8 +37,6 @@ import type { PropType } from 'vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
-import AssetLogoFull from '@/assets/assets-logo-full.svg?component';
-import AssetLogo from '@/assets/assets-t-logo.svg?component';
 import { prefix } from '@/config/global';
 import { getActive } from '@/router';
 import { useSettingStore } from '@/store';
@@ -166,11 +161,6 @@ onMounted(() => {
 
 const goHome = () => {
   router.push('/dashboard/analysis');
-};
-
-const getLogo = () => {
-  if (collapsed.value) return AssetLogo;
-  return AssetLogoFull;
 };
 </script>
 <style lang="less" scoped></style>

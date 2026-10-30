@@ -49,7 +49,6 @@ export const useNotificationStore = defineStore('notification', {
   }),
   getters: {
     unreadMsg: (state) => state.msgData.filter((item: NotificationItem) => item.status),
-    readMsg: (state) => state.msgData.filter((item: NotificationItem) => !item.status),
   },
   actions: {
     setMsgData(data: MsgDataType) {

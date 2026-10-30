@@ -2,6 +2,7 @@ package com.athena.modules.sys.entity;
 
 import com.athena.common.annotation.Dict;
 import com.athena.common.base.po.BasePo;
+import com.athena.modules.sys.validator.UniqueUser;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.athena.common.validator.group.AddGroup;
@@ -25,6 +26,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @TableName("sys_user")
+@UniqueUser(groups = {AddGroup.class, UpdateGroup.class})
 public class SysUser extends BasePo implements Serializable {
 
 	@Serial
@@ -46,7 +48,6 @@ public class SysUser extends BasePo implements Serializable {
 	 * 不能用 @JsonIgnore —— 那会连入参一起屏蔽，导致新增用户无法设置密码。
 	 */
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-	//@NotBlank(message="密码不能为空", groups = AddGroup.class)
 	private String password;
 
 	/**
@@ -59,6 +60,7 @@ public class SysUser extends BasePo implements Serializable {
 	/**
 	 * 手机号
 	 */
+	@NotBlank(message="手机号不能为空", groups = {AddGroup.class, UpdateGroup.class})
 	private String mobile;
 
 	/**

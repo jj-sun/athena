@@ -1,8 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router';
 import { createRouter, createWebHistory } from 'vue-router';
 
-const env = import.meta.env.MODE || 'development';
-
 const baseRoutes = import.meta.glob('./modules/baseRoutes.ts', { eager: true });
 
 // 导入modules非homepage相关固定路由

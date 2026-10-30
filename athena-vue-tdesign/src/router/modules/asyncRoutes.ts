@@ -2,35 +2,6 @@ import IFrame from '@/layouts/frame/index.vue';
 import Layout from '@/layouts/index.vue';
 
 export default [
-  /*  {
-    path: '/dashboard',
-    component: Layout,
-    redirect: '/dashboard/base',
-    name: 'dashboard',
-    meta: {
-      title: '仪表盘',
-      icon: shallowRef(DashboardIcon),
-      orderNo: 0,
-    },
-    children: [
-      {
-        path: 'base',
-        name: 'DashboardBase',
-        component: () => import('@/views/dashboard/base/index.vue'),
-        meta: {
-          title: '概览仪表盘',
-        },
-      },
-      {
-        path: 'detail',
-        name: 'DashboardDetail',
-        component: () => import('@/views/dashboard/detail/index.vue'),
-        meta: {
-          title: '统计报表',
-        },
-      },
-    ],
-  }, */
   {
     path: '/form',
     name: 'form',

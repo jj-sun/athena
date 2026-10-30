@@ -29,12 +29,6 @@ public class SysPermission extends BasePo implements Serializable {
 	private String parentId;
 
 	/**
-	 * 父菜单名称
-	 */
-	@TableField(exist=false)
-	private String parentName;
-
-	/**
 	 * 菜单名称
 	 */
 	private String name;

@@ -8,7 +8,5 @@ package com.athena.common.constant;
 public interface SecurityConstant {
 
     public final static String X_ACCESS_TOKEN = "X-Access-Token";
-    public final static String X_SIGN = "X-Sign";
-    public final static String X_TIMESTAMP = "X-TIMESTAMP";
 
 }

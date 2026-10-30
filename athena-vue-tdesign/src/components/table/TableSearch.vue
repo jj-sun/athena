@@ -16,7 +16,7 @@
   </t-card>
 </template>
 <script lang="ts">
-import { defineComponent, nextTick, onMounted, ref } from 'vue';
+import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'TableSearch',

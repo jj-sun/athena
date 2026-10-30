@@ -12,13 +12,8 @@ node_modules/
 !.yarn/versions
 
 # build files
-es/
-lib/
 dist/
-typings/
 
-_site
-package
 tmp*
 temp*
 coverage

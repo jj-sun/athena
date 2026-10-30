@@ -7,19 +7,21 @@ function request<T = any>(config: AxiosRequestConfig): Promise<T> {
   return service.request(config) as Promise<T>;
 }
 
-export function GET<T = any>(url: string, params?: any): Promise<T> {
+export function GET<T = any>(url: string, params?: any, config?: AxiosRequestConfig): Promise<T> {
   return request<T>({
     method: 'GET',
     url,
     params,
+    ...config,
   });
 }
 
-export function POST<T = any>(url: string, data?: any): Promise<T> {
+export function POST<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
   return request<T>({
     method: 'POST',
     url,
     data,
+    ...config,
   });
 }
 

@@ -1,6 +1,6 @@
 package com.athena;
 
-import cn.dev33.satoken.secure.BCrypt;
+import cn.hutool.crypto.digest.BCrypt;
 import cn.dev33.satoken.secure.SaSecureUtil;
 
 /**

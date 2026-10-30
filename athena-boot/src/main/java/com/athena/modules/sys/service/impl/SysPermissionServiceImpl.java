@@ -75,22 +75,6 @@ public class SysPermissionServiceImpl extends CrudRepository<SysPermissionMapper
 	}
 
 	@Override
-	public List<SysPermission> queryListParentId(String parentId, List<String> menuIdList) {
-		List<SysPermission> menuList = queryListParentId(parentId);
-		if(menuIdList == null){
-			return menuList;
-		}
-		
-		List<SysPermission> userMenuList = new ArrayList<>();
-		for(SysPermission menu : menuList){
-			if(menuIdList.contains(menu.getId())){
-				userMenuList.add(menu);
-			}
-		}
-		return userMenuList;
-	}
-
-	@Override
 	public List<SysPermission> queryListParentId(String parentId) {
 		return this.list(new LambdaQueryWrapper<SysPermission>().eq(SysPermission::getParentId, parentId).orderByAsc(SysPermission::getOrderNum));
 	}

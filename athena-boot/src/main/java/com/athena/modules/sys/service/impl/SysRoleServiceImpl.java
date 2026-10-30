@@ -68,11 +68,6 @@ public class SysRoleServiceImpl extends CrudRepository<SysRoleMapper, SysRole> i
     }
 
 
-    @Override
-	public List<String> queryRoleIdList(String username) {
-		return baseMapper.queryRoleIdList(username);
-	}
-
 	@Override
 	public List<String> queryRoleCodeById(List<String> ids) {
 		return baseMapper.findRoleCodeById(ids);

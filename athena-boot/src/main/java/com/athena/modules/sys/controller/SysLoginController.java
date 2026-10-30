@@ -1,6 +1,5 @@
 package com.athena.modules.sys.controller;
 
-import cn.dev33.satoken.secure.BCrypt;
 import cn.dev33.satoken.secure.SaSecureUtil;
 import cn.dev33.satoken.stp.SaLoginConfig;
 import cn.dev33.satoken.stp.SaTokenInfo;
@@ -9,12 +8,14 @@ import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.LineCaptcha;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.crypto.SecureUtil;
+import cn.hutool.crypto.digest.BCrypt;
 import com.athena.common.annotation.Log;
 import com.athena.common.constant.SecurityConstant;
 import com.athena.common.utils.ClientIpResolver;
 import com.athena.common.utils.RateLimitService;
 import com.athena.common.utils.RedisUtils;
 import com.athena.common.utils.Result;
+import com.athena.common.utils.RsaUtils;
 import com.athena.modules.sys.entity.SysUser;
 import com.athena.modules.sys.form.LoginUser;
 import com.athena.modules.sys.form.SysLoginForm;
@@ -101,8 +102,8 @@ public class SysLoginController {
 		String password = loginForm.getPassword();
 		try {
 			// 登录信息前端 RSA 公钥加密，此处用私钥解密
-			username = SaSecureUtil.rsaDecryptByPrivate(rsaPrivateKey, username);
-			password = SaSecureUtil.rsaDecryptByPrivate(rsaPrivateKey, password);
+			username = RsaUtils.decryptByPrivate(rsaPrivateKey, username);
+			password = RsaUtils.decryptByPrivate(rsaPrivateKey, password);
 		} catch (Exception e) {
 			return Result.error(LOGIN_FAIL_MESSAGE);
 		}

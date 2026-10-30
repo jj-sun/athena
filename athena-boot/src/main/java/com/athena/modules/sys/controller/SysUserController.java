@@ -1,27 +1,36 @@
 package com.athena.modules.sys.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import cn.dev33.satoken.secure.BCrypt;
 import cn.dev33.satoken.secure.SaSecureUtil;
+import cn.hutool.crypto.digest.BCrypt;
 import com.athena.common.annotation.Log;
 import com.athena.common.base.dto.PageDto;
 import com.athena.common.exception.RRException;
+import com.athena.common.utils.DateUtils;
 import com.athena.common.utils.PageUtils;
 import com.athena.common.utils.PasswordUtils;
 import com.athena.common.utils.Result;
+import com.athena.common.utils.RsaUtils;
 import com.athena.common.validator.Assert;
 import com.athena.common.validator.ValidatorUtils;
 import com.athena.common.validator.group.AddGroup;
 import com.athena.common.validator.group.UpdateGroup;
+import com.athena.modules.sys.dto.SysUserExportExcel;
+import com.athena.modules.sys.dto.SysUserImportExcel;
 import com.athena.modules.sys.entity.SysUser;
 import com.athena.modules.sys.form.PasswordForm;
 import com.athena.modules.sys.service.SysUserRoleService;
 import com.athena.modules.sys.service.SysUserService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -53,15 +62,6 @@ public class SysUserController extends AbstractController {
 	}
 	
 	/**
-	 * 获取登录的用户信息
-	 */
-	@GetMapping("/info")
-	public Result<SysUser> info(){
-
-		return Result.ok(null);
-	}
-	
-	/**
 	 * 修改登录用户密码
 	 */
 	@Log("修改密码")
@@ -74,8 +74,8 @@ public class SysUserController extends AbstractController {
 		String newPassword;
 		try {
 			// 前端 RSA 公钥加密，此处私钥解密
-			oldPassword = SaSecureUtil.rsaDecryptByPrivate(rsaPrivateKey, form.getPassword());
-			newPassword = SaSecureUtil.rsaDecryptByPrivate(rsaPrivateKey, form.getNewPassword());
+			oldPassword = RsaUtils.decryptByPrivate(rsaPrivateKey, form.getPassword());
+			newPassword = RsaUtils.decryptByPrivate(rsaPrivateKey, form.getNewPassword());
 		} catch (Exception e) {
 			return Result.error("密码格式错误！");
 		}
@@ -126,7 +126,7 @@ public class SysUserController extends AbstractController {
 		String plainPassword;
 		try {
 			// 前端 RSA 公钥加密，此处私钥解密
-			plainPassword = SaSecureUtil.rsaDecryptByPrivate(rsaPrivateKey, password);
+			plainPassword = RsaUtils.decryptByPrivate(rsaPrivateKey, password);
 		} catch (Exception e) {
 			return Result.error("新密码格式错误！");
 		}
@@ -206,5 +206,41 @@ public class SysUserController extends AbstractController {
 	public Result<Object> deleteBatch(@RequestParam(name = "ids") String ids) {
 		sysUserService.deleteBatch(Arrays.asList(ids.split(",")));
 		return Result.ok();
+	}
+
+	/**
+	 * 导出用户（不含密码）。
+	 *
+	 * <p>查询条件与列表接口一致：用户名、姓名、邮箱、部门。
+	 */
+	@GetMapping("/export")
+	@SaCheckPermission("sys:user:export")
+	public void export(SysUser user, HttpServletResponse response) {
+		List<SysUserExportExcel> list = sysUserService.queryExportList(user);
+		String fileName = "用户列表_" + DateUtils.format(new Date(), "yyyyMMddHHmmss") + ".xlsx";
+		exportExcel(response, fileName, "用户列表", SysUserExportExcel.class, list);
+	}
+
+	/**
+	 * 下载用户导入模板（只有表头）。
+	 */
+	@GetMapping("/importTemplate")
+	@SaCheckPermission("sys:user:import")
+	public void importTemplate(HttpServletResponse response) {
+		exportExcel(response, "用户导入模板.xlsx", "用户导入模板",
+				SysUserImportExcel.class, Collections.emptyList());
+	}
+
+	/**
+	 * 批量导入用户（包含初始密码）。
+	 *
+	 * <p>任一行校验失败都会整批回滚，错误信息带 Excel 行号。
+	 */
+	@PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@SaCheckPermission("sys:user:import")
+	public Result<Object> importUsers(@RequestParam("file") MultipartFile file) {
+		List<SysUserImportExcel> rows = importExcel(file, SysUserImportExcel.class);
+		int count = sysUserService.importUsers(rows);
+		return Result.ok("成功导入 " + count + " 个用户", count);
 	}
 }

@@ -58,6 +58,8 @@ INSERT INTO tmp_perm_codes (perms, name, parent_name, order_num) VALUES
   ('sys:user:info',            '用户详情',     '用户管理', 130),
   ('sys:user:resetPassword',   '重置用户密码', '用户管理', 131),
   ('sys:user:deleteBatch',     '用户批量删除', '用户管理', 132),
+  ('sys:user:import',          '用户导入',     '用户管理', 133),
+  ('sys:user:export',          '用户导出',     '用户管理', 134),
   -- 角色管理
   ('sys:role:list',            '角色列表',     '角色管理', 100),
   ('sys:role:select',          '角色选择',     '角色管理', 101),
@@ -192,6 +194,7 @@ FROM (
   SELECT 'sys:schedule:log'         UNION ALL SELECT 'sys:schedule:run'     UNION ALL
   SELECT 'sys:schedule:save'        UNION ALL SELECT 'sys:schedule:update'  UNION ALL
   SELECT 'sys:user:delete'          UNION ALL SELECT 'sys:user:deleteBatch' UNION ALL
+  SELECT 'sys:user:export'          UNION ALL SELECT 'sys:user:import'      UNION ALL
   SELECT 'sys:user:info'            UNION ALL SELECT 'sys:user:list'        UNION ALL
   SELECT 'sys:user:resetPassword'   UNION ALL SELECT 'sys:user:save'        UNION ALL
   SELECT 'sys:user:update'

@@ -5,22 +5,26 @@
 <br>
 
 **技术选型：** 
-- 核心框架：Spring Boot 4.1.0.RELEASE
+- 核心框架：Spring Boot 4.1.2（Java 21）
 - 安全框架：Sa-Token 1.45.0
-- 视图框架：Spring MVC 5.3.15
-- 持久层框架：MyBatis plus 3.5.15
+- 视图框架：Spring Framework 7.x（Spring MVC）
+- 持久层框架：MyBatis-Plus 3.5.18
 - 定时器：Quartz
 - 数据库连接池：Druid 
-- 日志管理：SLF4J、Log4j
-- 页面交互：Vue3.x 
+- 日志管理：SLF4J、Logback
+- API 文档：nextdoc4j + springdoc
+- 页面交互：Vue 3
 <br> 
 
-- athena-vue-tdeisgn 是一个基于 TDesign，使用 `Vue3`、`Vite`、`Pinia`、`TypeScript` 开发，可进行个性化主题配置，旨在提供项目开箱即用的、配置式的中后台项目。
+- athena-vue-tdesign 是一个基于 TDesign，使用 `Vue3`、`Vite`、`Pinia`、`TypeScript` 开发，可进行个性化主题配置，旨在提供项目开箱即用的、配置式的中后台项目。
 
 
 ### 开发
 
 ``` bash
+## 进入前端目录
+cd athena-vue-tdesign
+
 ## 安装依赖
 npm install
 

@@ -10,6 +10,9 @@ const userApi = {
   delete: '/sys/user/delete',
   deleteBatch: '/sys/user/deleteBatch',
   resetPassword: '/sys/user/resetPassword',
+  exportList: '/sys/user/export',
+  importList: '/sys/user/import',
+  importTemplate: '/sys/user/importTemplate',
 };
 
 export function getUserList(params: {
@@ -52,4 +55,21 @@ export function changePassword(oldPassword: string, newPassword: string) {
     password: rsaEncrypt(oldPassword),
     newPassword: rsaEncrypt(newPassword),
   });
+}
+
+/** 按当前查询条件导出全部匹配用户（不含密码） */
+export function exportUserList(params: { username?: string; realname?: string; email?: string; deptCode?: string }) {
+  return GET<Blob>(userApi.exportList, params, { responseType: 'blob' });
+}
+
+/** 批量导入用户，返回成功导入数量 */
+export function importUsers(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+  return POST<number>(userApi.importList, formData);
+}
+
+/** 下载用户导入模板（仅表头） */
+export function downloadUserImportTemplate() {
+  return GET<Blob>(userApi.importTemplate, undefined, { responseType: 'blob' });
 }

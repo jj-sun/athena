@@ -68,9 +68,4 @@ public class SysUserRoleServiceImpl extends CrudRepository<SysUserRoleMapper, Sy
 	public void deleteUserRole(String userId, String roleId) {
 		baseMapper.deleteByRoleAndUserId(roleId, userId);
 	}
-
-	@Override
-	public void batchDeleteUserRole(String roleId, List<String> userIds) {
-		baseMapper.batchDeleteByRoleAndUserIds(roleId, userIds);
-	}
 }

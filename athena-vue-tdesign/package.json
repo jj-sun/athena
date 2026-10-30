@@ -11,17 +11,15 @@
     "build:type": "vue-tsc --noEmit",
     "preview": "vite preview",
     "lint": "eslint --ext .vue,.js,.jsx,.ts,.tsx ./ --max-warnings 0",
-    "lint:fix": "eslint --ext .vue,.js,jsx,.ts,.tsx ./ --max-warnings 0 --fix",
+    "lint:fix": "eslint --ext .vue,.js,.jsx,.ts,.tsx ./ --max-warnings 0 --fix",
     "stylelint": "stylelint src/**/*.{html,vue,css,sass,less}",
     "stylelint:fix": "stylelint --fix src/**/*.{html,vue,css,sass,less}",
-    "prepare": "node -e \"if(require('fs').existsSync('.git')){process.exit(1)}\" || is-ci || husky install",
     "test": "echo \"no test specified,work in process\"",
     "test:coverage": "echo \"no test:coverage specified,work in process\""
   },
   "dependencies": {
     "@vueuse/core": "^12.3.0",
     "axios": "^1.8.4",
-    "cookie": "^1.1.1",
     "dayjs": "^1.11.13",
     "echarts": "5.4.3",
     "js-cookie": "^3.0.5",
@@ -40,9 +38,6 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.10.1",
-    "@commitlint/cli": "^19.8.0",
-    "@commitlint/config-conventional": "^19.8.0",
-    "@types/echarts": "^4.9.21",
     "@types/js-cookie": "^3.0.6",
     "@types/lodash": "^4.17.6",
     "@types/mockjs": "^1.0.10",
@@ -51,22 +46,17 @@
     "@vitejs/plugin-vue": "^5.0.4",
     "@vitejs/plugin-vue-jsx": "^4.1.1",
     "@vue/compiler-sfc": "~3.3.8",
-    "commitizen": "^4.3.0",
-    "cz-conventional-changelog": "^3.3.0",
     "eslint": "^9.22.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-vue-scoped-css": "^2.9.0",
     "globals": "^16.0.0",
-    "husky": "^9.1.7",
     "less": "^4.2.0",
-    "lint-staged": "^15.2.2",
     "mockjs": "^1.1.0",
     "postcss-html": "^1.6.0",
     "postcss-less": "^6.0.0",
     "prettier": "^3.5.3",
-    "rspack-resolver": "^1.1.1",
     "stylelint": "~16.16.0",
     "stylelint-config-standard": "^37.0.0",
     "stylelint-order": "~6.0.4",
@@ -76,20 +66,6 @@
     "vite-plugin-mock": "^3.0.1",
     "vite-svg-loader": "^5.1.0",
     "vue-tsc": "^2.2.8"
-  },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
-  },
-  "lint-staged": {
-    "*.{js,jsx,vue,ts,tsx}": [
-      "prettier --write",
-      "npm run lint:fix"
-    ],
-    "*.{html,vue,css,sass,less}": [
-      "npm run stylelint:fix"
-    ]
   },
   "engines": {
     "node": ">=18.18.0"

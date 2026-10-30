@@ -42,18 +42,6 @@ interface BaseTree {
 }
 
 export interface UserState {
-  /* token: string
-  userInfo: {
-    userId: string
-    username: string
-    realname: string
-    email: string
-    mobile: string
-    avatar: string
-
-    roleId: string
-    roles: string[] | null
-  } */
   token: string | undefined;
   username: string;
   realname: string;

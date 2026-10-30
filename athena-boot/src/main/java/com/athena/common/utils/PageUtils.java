@@ -66,40 +66,20 @@ public class PageUtils<T> implements Serializable {
 		return total;
 	}
 
-	public void setTotal(int total) {
-		this.total = total;
-	}
-
 	public int getPageSize() {
 		return pageSize;
-	}
-
-	public void setPageSize(int pageSize) {
-		this.pageSize = pageSize;
 	}
 
 	public int getPages() {
 		return pages;
 	}
 
-	public void setPages(int pages) {
-		this.pages = pages;
-	}
-
 	public int getCurrent() {
 		return current;
-	}
-
-	public void setCurrent(int current) {
-		this.current = current;
 	}
 
 	public List<T> getList() {
 		return list;
 	}
 
-	public void setList(List<T> list) {
-		this.list = list;
-	}
-	
 }

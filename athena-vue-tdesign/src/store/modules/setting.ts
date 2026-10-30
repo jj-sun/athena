@@ -104,8 +104,3 @@ export const useSettingStore = defineStore('setting', {
     paths: [...keys(STYLE_CONFIG), 'colorList', 'chartColors'],
   },
 });
-
-export function getSettingStore() {
-  // 不传 pinia：按当前 active pinia 取，避免 dev 期 HMR 模块副本导致的第二个空 store
-  return useSettingStore();
-}

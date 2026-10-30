@@ -28,6 +28,4 @@ public interface SysDictService extends IRepository<SysDict> {
      */
     DictModel queryTableDictTextByKey(String table, String text, String code, String key);
 
-    DictModel queryDictTextByKey(String code, String key);
-
 }

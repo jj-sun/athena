@@ -7,7 +7,6 @@ interface Table {
   bordered: Ref<boolean>;
   striped: Ref<boolean>;
   tableLoading: Ref<boolean>;
-  tableHeight: Ref<number>;
   handleSuccess: (res: any) => Promise<any>;
   useTableColumn: (columns: PrimaryTableCol<TableRowData>[], options: PrimaryTableCol<TableRowData>) => Array<any>;
   selectionColumn: { type: 'selection' };
@@ -19,30 +18,8 @@ interface Table {
   }[];
 }
 
-export const useTableHeight = async function (currentIns: any): Promise<number> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const clientHeight = document.querySelector('.main-section')?.getBoundingClientRect().height || 0;
-      const tableHeaderHeight = document.querySelector('.ant-table-header')?.getBoundingClientRect().height || 0;
-      if (currentIns) {
-        let tempHeight = tableHeaderHeight;
-        if (currentIns.refs.tableHeaderRef) {
-          const header = (currentIns.refs as any).tableHeaderRef.$el;
-          tempHeight += header.clientHeight;
-        }
-        if (currentIns.refs.tableFooterRef) {
-          tempHeight += 45;
-        }
-        resolve(clientHeight - tempHeight);
-      }
-      resolve(150);
-    }, 500);
-  });
-};
-
 export const useTable = function (): Table {
   const dataList = shallowReactive([]) as Array<any>;
-  const tableHeight = ref(200);
   const bordered = ref(false);
   const striped = ref(false);
   const tableLoading = ref(true);
@@ -54,7 +31,6 @@ export const useTable = function (): Table {
   };
   return {
     dataList,
-    tableHeight,
     bordered,
     striped,
     tableLoading,

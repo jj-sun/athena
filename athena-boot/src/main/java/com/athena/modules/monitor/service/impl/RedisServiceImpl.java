@@ -1,15 +1,10 @@
 package com.athena.modules.monitor.service.impl;
 
-import cn.hutool.core.date.DateUtil;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.athena.modules.monitor.domain.RedisInfo;
 import com.athena.modules.monitor.domain.RedisMonitorSnapshot;
 import com.athena.modules.monitor.exception.RedisConnectException;
 import com.athena.modules.monitor.service.RedisService;
-import com.google.common.collect.Maps;
 import jakarta.annotation.Resource;
-import org.springframework.cglib.beans.BeanMap;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.stereotype.Service;
@@ -55,88 +50,6 @@ public class RedisServiceImpl implements RedisService {
 		catch (Exception exception) {
 			throw new RedisConnectException("Redis 连接失败", exception);
 		}
-	}
-
-	/**
-	 * Redis详细信息
-	 */
-	@Override
-	public List<RedisInfo> getRedisInfo() throws RedisConnectException {
-		try (RedisConnection connection = redisConnectionFactory.getConnection()) {
-			return buildRedisInfo(getInfo(connection));
-		}
-		catch (Exception exception) {
-			throw new RedisConnectException("Redis 连接失败", exception);
-		}
-	}
-
-	@Override
-	public Map<String, Object> getKeysSize() throws RedisConnectException {
-		try (RedisConnection connection = redisConnectionFactory.getConnection()) {
-			Map<String, Object> map = new HashMap<>();
-			map.put("create_time", System.currentTimeMillis());
-			map.put("dbSize", connection.dbSize());
-			return map;
-		}
-		catch (Exception exception) {
-			throw new RedisConnectException("Redis 连接失败", exception);
-		}
-	}
-
-	@Override
-	public Map<String, Object> getMemoryInfo() throws RedisConnectException {
-		try (RedisConnection connection = redisConnectionFactory.getConnection()) {
-			Properties info = getInfo(connection);
-			Map<String, Object> map = new HashMap<>();
-			map.put("used_memory", getString(info, "used_memory"));
-			map.put("create_time", System.currentTimeMillis());
-			return map;
-		}
-		catch (Exception exception) {
-			throw new RedisConnectException("Redis 连接失败", exception);
-		}
-	}
-
-    /**
-     * 查询redis信息for报表
-     * @param type 1redis key数量 2 占用内存 3redis信息
-     * @return
-     * @throws RedisConnectException
-     */
-	@Override
-	public Map<String, JSONArray> getMapForReport(String type)  throws RedisConnectException {
-		Map<String,JSONArray> mapJson=new HashMap<String, JSONArray> ();
-		JSONArray json = new JSONArray();
-		if("3".equals(type)){
-			List<RedisInfo> redisInfo = getRedisInfo();
-			for(RedisInfo info:redisInfo){
-				Map<String, Object> map= Maps.newHashMap();
-				BeanMap beanMap = BeanMap.create(info);
-				for (Object key : beanMap.keySet()) {
-					map.put(key+"", beanMap.get(key));
-				}
-				json.add(map);
-			}
-			mapJson.put("data",json);
-			return mapJson;
-		}
-		for(int i = 0; i < 5; i++){
-			JSONObject jo = new JSONObject();
-			Map<String, Object> map;
-			if("1".equals(type)){
-				map= getKeysSize();
-				jo.put("value",map.get("dbSize"));
-			}else{
-				map = getMemoryInfo();
-				Long usedMemory = parseLong(map.get("used_memory"));
-				jo.put("value", usedMemory == null ? null : usedMemory / 1000);
-			}
-			String create_time = DateUtil.formatTime(DateUtil.date((Long) map.get("create_time")-(4-i)*1000));
-			jo.put("name",create_time);
-			json.add(jo);
-		}
-		mapJson.put("data",json);
-		return mapJson;
 	}
 
 	private Properties getInfo(RedisConnection connection) {

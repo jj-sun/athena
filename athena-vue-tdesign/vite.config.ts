@@ -32,15 +32,15 @@ export default ({ mode }: ConfigEnv): UserConfig => {
       },
     },
     build: {
-    rollupOptions: {
-      output: {
-        // 每次构建生成唯一 hash 的文件名
-        entryFileNames: 'js/[name].[hash].js',
-        chunkFileNames: 'js/[name].[hash].js',
-        assetFileNames: 'assets/[name].[hash].[ext]'
-      }
-    }
-  },
+      rollupOptions: {
+        output: {
+          // 每次构建生成唯一 hash 的文件名
+          entryFileNames: 'js/[name].[hash].js',
+          chunkFileNames: 'js/[name].[hash].js',
+          assetFileNames: 'assets/[name].[hash].[ext]',
+        },
+      },
+    },
     plugins: [
       vue(),
       vueJsx(),

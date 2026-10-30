@@ -55,17 +55,3 @@ export interface TablePropsType {
   sortIndex: number;
   checked: Ref<boolean>;
 }
-
-// export type ModalDialogType = InstanceType<typeof ModalDialog>
-
-export type ModalDialogType = InstanceType<typeof import('../components/common/ModalDialog.vue').default>;
-
-export type DataFormType = InstanceType<typeof import('../components/DataForm.vue').default>;
-
-export type TableHeaderType = InstanceType<typeof import('../components/common/TableHeader.vue').default>;
-
-export type TableFooterType = InstanceType<typeof import('../components/common/TableFooter.vue').default>;
-
-export type SvgIconType = InstanceType<typeof import('../components/svg-icon/index.vue').default>;
-
-export type SearchContentType = InstanceType<typeof import('../components/common/SearchContent.vue').default>;

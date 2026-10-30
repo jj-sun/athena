@@ -9,8 +9,7 @@ const state = {
   isRefreshing: false,
 };
 
-// 不需要做多标签tabs页缓存的列表 值为每个页面对应的name 如 DashboardDetail
-// const ignoreCacheRoutes = ['DashboardDetail'];
+// 不需要做多标签tabs页缓存的列表 值为每个页面对应的name
 const ignoreCacheRoutes = ['login'];
 
 export const useTabsRouterStore = defineStore('tabsRouter', {
@@ -73,9 +72,6 @@ export const useTabsRouterStore = defineStore('tabsRouter', {
     },
     removeTabRouterList() {
       this.tabRouterList = [];
-    },
-    initTabRouterList(newRoutes: TRouterInfo[]) {
-      newRoutes?.forEach((route: TRouterInfo) => this.appendTabRouterList(route));
     },
   },
   persist: true,

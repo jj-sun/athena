@@ -14,6 +14,7 @@ import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 
 import { usePermissionStore, useSettingStore } from '@/store';
+import type { MenuRoute } from '@/types/interface';
 
 import LHeader from './Header.vue';
 
@@ -21,15 +22,16 @@ const permissionStore = usePermissionStore();
 const settingStore = useSettingStore();
 const { routers: menuRouters } = storeToRefs(permissionStore);
 const headerMenu = computed(() => {
+  let routes = menuRouters.value;
   if (settingStore.layout === 'mix') {
-    if (settingStore.splitMenu) {
-      return menuRouters.value.map((menu) => ({
-        ...menu,
-        children: [],
-      }));
-    }
-    return [];
+    routes = settingStore.splitMenu
+      ? menuRouters.value.map((menu) => ({
+          ...menu,
+          children: [],
+        }))
+      : [];
   }
-  return menuRouters.value;
+  // Header/MenuContent 只消费 path/title/icon，RouteRecordName 的 symbol 分支不会用到
+  return routes as unknown as MenuRoute[];
 });
 </script>

@@ -1,6 +1,6 @@
 package com.athena.permission;
 
-import cn.dev33.satoken.secure.BCrypt;
+import cn.hutool.crypto.digest.BCrypt;
 import cn.dev33.satoken.secure.SaSecureUtil;
 import com.athena.modules.sys.entity.SysUser;
 import com.athena.modules.sys.service.SysUserService;

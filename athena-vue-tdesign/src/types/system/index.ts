@@ -84,16 +84,4 @@ export interface SysPermission {
   children?: Array<SysPermission>;
 }
 
-export interface SysLog {
-  id: string;
-  logType: number;
-  username: string;
-  operation: string;
-  method: string;
-  params: string;
-  time: number;
-  ip: string;
-  createDate: string;
-}
-
 export type { BaseSelect, PageResult, Result };

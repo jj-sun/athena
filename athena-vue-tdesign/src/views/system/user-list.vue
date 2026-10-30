@@ -72,6 +72,14 @@
                   </t-dropdown-item>
                 </t-dropdown-menu>
               </t-dropdown>
+              <t-button v-permission="'sys:user:import'" variant="outline" @click="onOpenImport">
+                <template #icon><upload-icon /></template>
+                导入
+              </t-button>
+              <t-button v-permission="'sys:user:export'" variant="outline" @click="onExport">
+                <template #icon><download-icon /></template>
+                导出
+              </t-button>
             </template>
           </table-header>
           <t-table
@@ -180,21 +188,53 @@
         </t-form-item>
       </t-form>
     </t-dialog>
+
+    <t-dialog
+      v-model:visible="importVisible"
+      header="批量导入用户"
+      width="560px"
+      :confirm-loading="importLoading"
+      @confirm="onImportConfirm"
+      @close="onImportClose"
+    >
+      <t-space direction="vertical" size="small" style="width: 100%">
+        <t-upload
+          v-model="importFiles"
+          theme="custom"
+          accept=".xlsx,.xls"
+          :auto-upload="false"
+          :size-limit="{ size: 10, unit: 'MB' }"
+          placeholder="请选择 Excel 文件"
+        >
+          <t-button variant="outline">选择文件</t-button>
+        </t-upload>
+        <div v-if="importFiles.length > 0" style="font-size: 12px">已选择：{{ importFiles[0].name }}</div>
+        <t-link theme="primary" @click="onDownloadTemplate">下载导入模板</t-link>
+        <div style="color: var(--td-text-color-secondary); font-size: 12px; line-height: 20px">
+          单次最多导入 1000 个用户。用户名、手机号必填且不能重复；密码需包含大写、小写、数字和特殊字符且不少于 8
+          位；部门填写部门编码，角色填写角色编码（多个用逗号分隔）。
+        </div>
+      </t-space>
+    </t-dialog>
   </div>
 </template>
 <script lang="ts" setup>
-import { DeleteIcon, KeyIcon, MoreIcon, PlusIcon } from 'tdesign-icons-vue-next';
-import type { FormInstanceFunctions, FormProps, TreeProps } from 'tdesign-vue-next';
+import dayjs from 'dayjs';
+import { DeleteIcon, DownloadIcon, KeyIcon, MoreIcon, PlusIcon, UploadIcon } from 'tdesign-icons-vue-next';
+import type { FormInstanceFunctions, FormProps, TreeProps, UploadFile } from 'tdesign-vue-next';
 import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
-import { getCurrentInstance, onMounted, reactive, ref, useTemplateRef } from 'vue';
+import { onMounted, reactive, ref, useTemplateRef } from 'vue';
 
 import { getDeptList } from '@/api/system/dept';
 import { getRoleSelect } from '@/api/system/role';
 import {
   deleteUser,
   deleteUserBatch,
+  downloadUserImportTemplate,
+  exportUserList,
   getUserInfo,
   getUserList,
+  importUsers,
   resetUserPassword,
   saveUser,
   updateUser,
@@ -210,15 +250,14 @@ import {
   useRowSelection,
   useTable,
   useTableColumn,
-  useTableHeight,
 } from '@/hooks/table';
 import { getPermissionStore } from '@/store';
 import type { TablePropsType } from '@/types/components';
 import type { SysRole, SysUser } from '@/types/system';
-import { sortColumns } from '@/utils';
+import { downloadBlob, sortColumns } from '@/utils';
 import { passwordValidator } from '@/utils/validate';
 
-const { tableLoading, dataList, tableHeight, indexColumn, handleSuccess } = useTable();
+const { tableLoading, dataList, indexColumn, handleSuccess } = useTable();
 const rowKey = useRowKey('id');
 const pagination = usePagination(loadData);
 const { selectedRowKeys, onSelectChange, onClearSelected } = useRowSelection();
@@ -243,6 +282,10 @@ const formRef = ref<FormInstanceFunctions>(null);
 const modalDialogRef = useTemplateRef('modalDialogRef');
 const actionTitle = ref('新增用户');
 const isAdd = ref(true);
+
+const importVisible = ref(false);
+const importLoading = ref(false);
+const importFiles = ref<UploadFile[]>([]);
 
 const formData = reactive<SysUser>({
   id: '',
@@ -280,6 +323,13 @@ const rules: FormProps['rules'] = {
     {
       pattern: /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/,
       message: '邮箱格式不正确',
+      type: 'error',
+    },
+  ],
+  mobile: [
+    {
+      required: true,
+      message: '手机号必填',
       type: 'error',
     },
   ],
@@ -423,6 +473,57 @@ function loadRoleOptions() {
       console.error('加载角色失败', err);
       MessagePlugin.error('加载角色失败');
     });
+}
+
+async function onExport() {
+  try {
+    const params: any = { ...searchForm };
+    if (selectedDeptKeys.value.length > 0) {
+      params.deptCode = selectedDeptKeys.value.join(',');
+    }
+    const blob = await exportUserList(params);
+    downloadBlob(blob, `用户列表_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx`);
+  } catch (error: any) {
+    void MessagePlugin.error(error?.message || '导出失败');
+  }
+}
+
+function onOpenImport() {
+  importFiles.value = [];
+  importVisible.value = true;
+}
+
+function onImportClose() {
+  importFiles.value = [];
+}
+
+async function onImportConfirm() {
+  const file = importFiles.value[0]?.raw;
+  if (!(file instanceof File)) {
+    void MessagePlugin.warning('请选择 Excel 文件');
+    return;
+  }
+  importLoading.value = true;
+  try {
+    const count = await importUsers(file);
+    void MessagePlugin.success(`成功导入 ${count} 个用户`);
+    importVisible.value = false;
+    importFiles.value = [];
+    loadData();
+  } catch (error: any) {
+    void MessagePlugin.error(error?.message || '导入失败');
+  } finally {
+    importLoading.value = false;
+  }
+}
+
+async function onDownloadTemplate() {
+  try {
+    const blob = await downloadUserImportTemplate();
+    downloadBlob(blob, '用户导入模板.xlsx');
+  } catch (error: any) {
+    void MessagePlugin.error(error?.message || '下载模板失败');
+  }
 }
 
 function deptSearchChange() {
@@ -601,9 +702,6 @@ function onUpdateTable(newColumns: Array<TablePropsType>) {
 }
 
 onMounted(() => {
-  useTableHeight(getCurrentInstance()).then((height) => {
-    tableHeight.value = height;
-  });
   loadData();
   // 仅在有对应权限时加载筛选/表单数据，避免无权限角色一进页面就弹 403
   const { permissions } = getPermissionStore();

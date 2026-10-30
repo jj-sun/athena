@@ -7,7 +7,6 @@ export default {
   layout: 'side',
   splitMenu: false,
   sideMode: 'light',
-  isFooterAside: false,
   isSidebarFixed: true,
   isHeaderFixed: true,
   isUseTabsRouter: true,

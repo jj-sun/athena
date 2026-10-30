@@ -29,6 +29,5 @@
     "src/**/*.tsx",
     "src/**/*.vue",
     "node_modules/tdesign-vue-next/global.d.ts"
-  ],
-  "compileOnSave": false
+  ]
 }

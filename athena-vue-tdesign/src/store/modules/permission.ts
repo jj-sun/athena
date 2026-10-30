@@ -64,11 +64,6 @@ export const usePermissionStore = defineStore('permission', {
 
       // 在菜单展示全部路由
       this.routers = [...baseRouterList, ...accessedRouters, ...asyncRouterList];
-      // console.log(this.routers);
-      // 在菜单只展示动态路由和首页
-      // this.routers = [...homepageRouterList, ...accessedRouters];
-      // 在菜单只展示动态路由
-      // this.routers = [...accessedRouters];
     },
     async buildAsyncRoutes() {
       try {

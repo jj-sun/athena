@@ -20,13 +20,6 @@ public class Query<T> {
     private static final long DEFAULT_PAGE_SIZE = 10L;
 
     /**
-     * 只分页，不指定默认排序。
-     */
-    public IPage<T> getPage(PageDto pageDto) {
-        return buildPage(pageDto, null, false);
-    }
-
-    /**
      * 分页 + 默认排序。
      *
      * <p>默认排序字段由调用方以服务端常量传入，不再从请求参数读取 —— 原实现把

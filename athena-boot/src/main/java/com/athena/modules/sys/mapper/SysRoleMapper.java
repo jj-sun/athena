@@ -17,10 +17,5 @@ import java.util.List;
 @Mapper
 public interface SysRoleMapper extends BaseMapper<SysRole> {
 	
-	/**
-	 * 查询用户创建的角色ID列表
-	 */
-	List<String> queryRoleIdList(String username);
-
 	List<String> findRoleCodeById(@Param("ids") List<String> ids);
 }

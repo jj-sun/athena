@@ -40,9 +40,4 @@ public interface SysUserRoleService extends IRepository<SysUserRole> {
 	 * 从角色移除用户
 	 */
 	void deleteUserRole(String userId, String roleId);
-
-	/**
-	 * 批量从角色移除用户
-	 */
-	void batchDeleteUserRole(String roleId, List<String> userIds);
 }

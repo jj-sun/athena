@@ -15,15 +15,11 @@ server:
 #mybatis
 mybatis-plus:
   mapper-locations: classpath*:com/athena/modules/**/xml/*Mapper.xml
-  #实体扫描，多个package用逗号或者分号分隔
-  #typeAliasesPackage: com.athena.modules.*.entity
   global-config:
     #数据库相关配置
     db-config:
       #主键类型  AUTO:"数据库ID自增", INPUT:"用户输入ID", ID_WORKER:"全局唯一ID (数字类型唯一ID)", UUID:"全局唯一ID UUID";
       id-type: ASSIGN_ID
-      logic-delete-value: -1
-      logic-not-delete-value: 0
     banner: false
   #原生配置
   configuration:
@@ -62,8 +58,6 @@ spring:
           max-wait: -1ms      # 连接池最大阻塞等待时间（使用负值表示没有限制）
           max-idle: 10      # 连接池中的最大空闲连接
           min-idle: 5       # 连接池中的最小空闲连接
-  #  resources:
-  #    add-mappings: false
   quartz:
     job-store-type: jdbc
     jdbc:
@@ -103,8 +97,6 @@ spring:
       max-pool-prepared-statement-per-connection-size: 20
       time-between-eviction-runs-millis: 60000
       min-evictable-idle-time-millis: 300000
-      #Oracle需要打开注释
-      #validation-query: SELECT 1 FROM DUAL
       test-while-idle: true
       test-on-borrow: false
       test-on-return: false
@@ -127,12 +119,6 @@ spring:
           log-slow-sql: true
           slow-sql-millis: 1000
           merge-sql: false
-        wall:
-          # 不启用 Druid SQL 防火墙（默认关闭，避免被误开）。
-          # 原配置只写了子项 filter.wall.config.multi-statement-allow: true，而该 firewall 从未
-          # 真正生效过（bean 由 filter.wall.enabled 控制且无默认值）；且 true 会放开多语句执行。
-          # SQL 注入已在应用层治理：排序字段与动态表名白名单校验 + BlockAttackInnerInterceptor。
-          enabled: false
 nextdoc4j:
   enabled: true
   production: false
@@ -147,7 +133,4 @@ athena:
     expose-api-docs: true
     # 本地直连后端，不经过反向代理：不信任任何转发头（X-Forwarded-For 会被忽略）。
     trusted-proxies:
-logging:
-  level:
-    com.athena.modules.system.mapper: info
 

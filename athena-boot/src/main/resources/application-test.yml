@@ -15,15 +15,11 @@ server:
 #mybatis
 mybatis-plus:
   mapper-locations: classpath*:com/athena/modules/**/xml/*Mapper.xml
-  #实体扫描，多个package用逗号或者分号分隔
-  #typeAliasesPackage: com.athena.modules.*.entity
   global-config:
     #数据库相关配置
     db-config:
       #主键类型  AUTO:"数据库ID自增", INPUT:"用户输入ID", ID_WORKER:"全局唯一ID (数字类型唯一ID)", UUID:"全局唯一ID UUID";
       id-type: ASSIGN_ID
-      logic-delete-value: -1
-      logic-not-delete-value: 0
     banner: false
   #原生配置
   configuration:
@@ -62,8 +58,6 @@ spring:
           max-wait: -1ms      # 连接池最大阻塞等待时间（使用负值表示没有限制）
           max-idle: 10      # 连接池中的最大空闲连接
           min-idle: 5       # 连接池中的最小空闲连接
-  #  resources:
-  #    add-mappings: false
   quartz:
     job-store-type: jdbc
     jdbc:
@@ -103,36 +97,14 @@ spring:
       max-pool-prepared-statement-per-connection-size: 20
       time-between-eviction-runs-millis: 60000
       min-evictable-idle-time-millis: 300000
-      #Oracle需要打开注释
-      #validation-query: SELECT 1 FROM DUAL
       test-while-idle: true
       test-on-borrow: false
       test-on-return: false
-      stat-view-servlet:
-        # 仅开发环境开启 Druid 监控台，并叠加三重限制：账号密码 + 仅本机可访问 + 禁止重置统计。
-        # 注意：它是独立 servlet，不经过 Spring MVC 的登录拦截器，Sa-Token 的免登录白名单
-        # 与它无关，必须靠这些设置控制。测试/生产环境已整块关闭（enabled: false）。
-        enabled: false
-        url-pattern: /druid/*
-        # allow 必须显式填写：留空会被绑定成空串，语义不明确。
-        # 注意 Druid 的 allow 只认 IPv4（写 ::1 之类会在启动时报 initParameter config error），
-        # 因此访问控制台请用 IPv4 回环：http://127.0.0.1:8080/athena/druid/index.html
-        # 用 localhost 走 IPv6 会被判为不在名单内而拒绝（返回 "Sorry, you are not permitted"）。
-        allow: 127.0.0.1
-        reset-enable: false
-        login-username: druid
-        login-password: Admin@4728
       filter:
         stat:
           log-slow-sql: true
           slow-sql-millis: 1000
           merge-sql: false
-        wall:
-          # 不启用 Druid SQL 防火墙（默认关闭，避免被误开）。
-          # 原配置只写了子项 filter.wall.config.multi-statement-allow: true，而该 firewall 从未
-          # 真正生效过（bean 由 filter.wall.enabled 控制且无默认值）；且 true 会放开多语句执行。
-          # SQL 注入已在应用层治理：排序字段与动态表名白名单校验 + BlockAttackInnerInterceptor。
-          enabled: false
 nextdoc4j:
   enabled: true
   production: true
@@ -149,7 +121,4 @@ athena:
     # 例如 127.0.0.1（同机 nginx）或 172.17.0.0/16（独立容器）。
     # 未设置时不信任任何转发头（安全默认）。
     trusted-proxies: ${ATHENA_TRUSTED_PROXIES:}
-logging:
-  level:
-    com.athena.modules.system.mapper: info
 

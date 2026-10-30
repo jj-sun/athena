@@ -22,13 +22,6 @@ public interface SysPermissionService extends IRepository<SysPermission> {
 	/**
 	 * 根据父菜单，查询子菜单
 	 * @param parentId 父菜单ID
-	 * @param menuIdList  用户菜单ID
-	 */
-	List<SysPermission> queryListParentId(String parentId, List<String> menuIdList);
-
-	/**
-	 * 根据父菜单，查询子菜单
-	 * @param parentId 父菜单ID
 	 */
 	List<SysPermission> queryListParentId(String parentId);
 	

@@ -13,18 +13,6 @@ public class Constant {
 
     public static final String TREE_ROOT = "0";
     /**
-     * 当前页码
-     */
-    public static final String PAGE = "page";
-    /**
-     * 每页显示记录数
-     */
-    public static final String PAGE_SIZE = "pageSize";
-    /**
-     * 排序字段
-     */
-    public static final String ORDER_FIELD = "sidx";
-    /**
      * 排序方式
      */
     public static final String ORDER = "order";
@@ -39,11 +27,6 @@ public class Constant {
      * Query.getPage 与 MybatisPlusConfig 的分页插件均以此为准，改这里即可同时生效。
      */
     public static final long MAX_PAGE_SIZE = 1000L;
-
-    /**
-     * 字典翻译文本后缀
-     */
-    public static final String DICT_TEXT_SUFFIX = "_dictText";
 
 	/**
 	 * 菜单类型

@@ -23,11 +23,9 @@ export default antfu(
         globals: {
           ...globals.browser,
           ...globals.node,
-          ...globals.jest,
           defineProps: 'readonly',
           defineEmits: 'readonly',
         },
-        ecmaVersion: 6,
         sourceType: 'module',
 
         parserOptions: {
@@ -138,13 +136,7 @@ export default antfu(
       '**/es',
       '**/esm',
       '**/node_modules',
-      'src/_common',
-      '**/static',
-      '**/cypress',
-      'script/test/cypress',
-      '**/_site',
       '**/temp*',
-      '**/static/',
       '!**/.prettierrc.js',
     ]),
   ],

@@ -21,11 +21,5 @@ public interface SysRoleService extends IRepository<SysRole> {
 
 	void deleteBatch(List<String> ids);
 
-	/**
-	 * 查询用户创建的角色ID列表
-	 */
-	List<String> queryRoleIdList(String username);
-
-
 	List<String> queryRoleCodeById(List<String> ids);
 }

@@ -71,9 +71,4 @@ public class SysDictServiceImpl extends CrudRepository<SysDictMapper, SysDict> i
         return this.getBaseMapper().queryTableDictTextByKey(safeTable, safeText, safeCode, key);
     }
 
-    @Override
-    public DictModel queryDictTextByKey(String code, String key) {
-        return this.getBaseMapper().queryDictTextByKey(code, key);
-    }
-
 }

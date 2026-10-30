@@ -17,10 +17,4 @@ public abstract class Assert {
             throw new RRException(message);
         }
     }
-
-    public static void isNull(Object object, String message) {
-        if (object == null) {
-            throw new RRException(message);
-        }
-    }
 }

@@ -30,17 +30,6 @@ public class Result<T> implements Serializable {
 	
 	public Result() {}
 
-	public Result<T> success(String message) {
-		this.message = message;
-		this.code = HttpStatus.OK.value();
-		this.success = true;
-		return this;
-	}
-	
-	public static Result<Object> error() {
-		return error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "未知异常，请联系管理员");
-	}
-	
 	public static Result<Object> error(String msg) {
 		return error(HttpStatus.INTERNAL_SERVER_ERROR.value(), msg);
 	}
@@ -50,15 +39,6 @@ public class Result<T> implements Serializable {
 		r.setCode(code);
 		r.setSuccess(false);
 		r.setMessage(msg);
-		return r;
-	}
-
-	public static<T> Result<T> error(String msg, T data) {
-		Result<T> r = new Result<>();
-		r.setSuccess(false);
-		r.setCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
-		r.setMessage(msg);
-		r.setData(data);
 		return r;
 	}
 

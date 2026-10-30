@@ -1,5 +1,5 @@
-import { GET, POST } from '@/utils/http';
 import { rsaEncrypt } from '@/utils/crypto';
+import { GET, POST } from '@/utils/http';
 
 export function login(username: string, password: string, captcha: string, checkKey: string) {
   const data = {
@@ -21,8 +21,4 @@ export function login(username: string, password: string, captcha: string, check
  */
 export function getCaptcha(checkKey: string) {
   return GET<string>('/captcha', { checkKey });
-}
-
-export function logout() {
-  return POST('/logout');
 }

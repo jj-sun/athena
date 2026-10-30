@@ -1,4 +1,4 @@
-import type { AxiosRequestHeaders, InternalAxiosRequestConfig } from 'axios';
+import type { AxiosRequestHeaders, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import Axios from 'axios';
 import Cookies from 'js-cookie';
 import NProgress from 'nprogress';
@@ -12,18 +12,17 @@ import { useUserStore } from '@/store';
 import { parseUrlParams, randomNonce, signParams } from './sign';
 
 const baseURL: string = import.meta.env.VITE_API_URL || '/athena';
-export const CONTENT_TYPE = 'Content-Type';
+const CONTENT_TYPE = 'Content-Type';
 
-export const FORM_URLENCODED = 'application/x-www-form-urlencoded; charset=UTF-8';
+const FORM_URLENCODED = 'application/x-www-form-urlencoded; charset=UTF-8';
 
-export const APPLICATION_JSON = 'application/json; charset=UTF-8';
+const APPLICATION_JSON = 'application/json; charset=UTF-8';
 
-export const TEXT_PLAIN = 'text/plain; charset=UTF-8';
 // 标记是否正在跳转登录，防止重复跳转
 let isRedirecting = false;
 
 // 定义业务错误类型
-export class BusinessError extends Error {
+class BusinessError extends Error {
   code: number;
   data: any;
 
@@ -44,7 +43,9 @@ service.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     config.headers ??= {} as AxiosRequestHeaders;
     const token = Cookies.get(USER_TOKEN_KEY);
-    if (!config.headers.has(CONTENT_TYPE)) {
+    // FormData 由浏览器自动生成 multipart boundary，不能强行写成 application/json
+    const isFormData = typeof FormData !== 'undefined' && config.data instanceof FormData;
+    if (!config.headers.has(CONTENT_TYPE) && !isFormData) {
       config.headers.set(CONTENT_TYPE, APPLICATION_JSON);
     }
     if (config.headers[CONTENT_TYPE] === FORM_URLENCODED) {
@@ -76,21 +77,19 @@ service.interceptors.request.use(
 );
 
 service.interceptors.response.use(
-  (response) => {
-    const { code, message, data } = response.data || {};
-    // 鲁棒识别 Sa-Token NotLoginException（后端通用异常处理器返回 code=500 + 含 token/未登录 的 message）
-    if (code === 500 && message && /token|未登录|登录已过期/i.test(message)) {
-      redirectToLogin();
-      return Promise.reject(new Error('Token已失效'));
+  async (response) => {
+    if (response.config.responseType === 'blob') {
+      return handleBlobResponse(response);
     }
-    if (code === 200) {
-      return data;
-    }
-    return Promise.reject(new BusinessError(code, message, data));
+    return handleEnvelope(response.data);
   },
-  (error) => {
+  async (error) => {
     const status = error?.response?.status;
-    const backendMessage = error?.response?.data?.message;
+    let backendMessage = error?.response?.data?.message;
+    if (isBlob(error?.response?.data)) {
+      // 下载接口出错时，后端仍返回 JSON，但 responseType=blob 会把它包成 Blob
+      backendMessage = (await readBlobMessage(error.response.data)) ?? backendMessage;
+    }
 
     // 401：登录态无效，需要重新登录
     if (status === 401) {
@@ -119,10 +118,59 @@ service.interceptors.response.use(
   },
 );
 
+/** 统一处理后端 Result 信封（{ code, message, data }）。 */
+function handleEnvelope(payload: any): any {
+  const { code, message, data } = payload || {};
+  // 鲁棒识别 Sa-Token NotLoginException（后端通用异常处理器返回 code=500 + 含 token/未登录 的 message）
+  if (code === 500 && message && /token|未登录|登录已过期/i.test(message)) {
+    redirectToLogin();
+    throw new Error('Token已失效');
+  }
+  if (code === 200) {
+    return data;
+  }
+  throw new BusinessError(code, message, data);
+}
+
+function isBlob(value: unknown): value is Blob {
+  return typeof Blob !== 'undefined' && value instanceof Blob;
+}
+
+/**
+ * responseType=blob 时，正常导出返回 Excel 二进制；业务错误/鉴权失败仍返回 JSON，
+ * 只是被 axios 包成了 Blob。这里把 JSON Blob 还原成统一的业务异常，避免前端
+ * 把错误信息当成 .xlsx 文件下载。
+ */
+async function handleBlobResponse(response: AxiosResponse): Promise<any> {
+  const blob = response.data as Blob;
+  // 正常下载是 xlsx 二进制，没必要把它整体读成文本
+  if (blob.type && !/json|text/i.test(blob.type)) {
+    return blob;
+  }
+  const payload = await parseJsonBlob(blob);
+  if (payload) {
+    return handleEnvelope(payload);
+  }
+  return blob;
+}
+
+async function parseJsonBlob(blob: Blob): Promise<any | null> {
+  try {
+    const text = await blob.text();
+    if (!text.trim().startsWith('{')) return null;
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+async function readBlobMessage(blob: Blob): Promise<string | undefined> {
+  const payload = await parseJsonBlob(blob);
+  return payload?.message;
+}
+
 // 处理登录跳转
 const redirectToLogin = () => {
-  console.log('进入登录跳转页面', isRedirecting);
-  console.log(router.currentRoute.value.path);
   if (isRedirecting) return;
   // 已在登录页则不再重复跳转，避免 redirect 参数嵌套
   if (router.currentRoute.value.path === '/login') return;
@@ -132,9 +180,7 @@ const redirectToLogin = () => {
   void MessagePlugin.error('登录已过期，请重新登录');
 
   const userStore = useUserStore();
-  userStore.logout().then(() => {
-    console.log('跳转成功');
-  });
+  void userStore.logout();
   window.location.href = `/login?redirect=${encodeURIComponent(router.currentRoute.value.fullPath)}`;
 };
 

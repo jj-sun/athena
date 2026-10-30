@@ -36,14 +36,6 @@ export const useUserStore = defineStore('user', {
       roles: userState.roles || [],
     };
   },
-  getters: {
-    roles: (state) => {
-      return state?.roles;
-    },
-    userInfo(state: UserState): UserState {
-      return { ...state };
-    },
-  },
   actions: {
     setInfo(partial: Partial<UserState>) {
       this.$patch(partial);
