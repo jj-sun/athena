@@ -1,0 +1,179 @@
+# athena-crud 完整输入示例
+# 复制后按实际业务修改。字段 name 使用 lowerCamelCase；列名由生成器转为 snake_case。
+
+module: product
+moduleLabel: 商品管理
+entity: Product
+entityKebab: product
+entityLabel: 商品
+tableName: product
+route: /product/product
+permissionPrefix: product:product
+
+menu:
+  parentId: "0"        # "0" = 新建一级目录；否则填已有 sys_permission.id
+  icon: view-list
+  orderNum: 10
+
+fields:
+  # 字符串：唯一 + 模糊查询
+  - name: productCode
+    label: 商品编码
+    type: string
+    length: 64
+    required: true
+    unique: true
+    query: like
+    list: true
+    form: true
+    import: required
+    export: true
+
+  - name: productName
+    label: 商品名称
+    type: string
+    length: 128
+    required: true
+    query: like
+    list: true
+    form: true
+    import: required
+    export: true
+
+  # 文本：只做表单，不导入导出
+  - name: description
+    label: 描述
+    type: text
+    length: 2000
+    required: false
+    query: none
+    list: false
+    form: true
+    import: never
+    export: false
+
+  # 整数
+  - name: stock
+    label: 库存
+    type: integer
+    min: 0
+    required: true
+    query: none
+    list: true
+    form: true
+    import: optional
+    export: true
+
+  # 业务长整型（计数用）
+  - name: salesCount
+    label: 销量
+    type: long
+    required: false
+    query: none
+    list: true
+    form: false
+    import: never
+    export: true
+
+  # 金额
+  - name: price
+    label: 价格
+    type: decimal
+    precision: 12
+    scale: 2
+    required: true
+    query: between
+    list: true
+    form: true
+    import: optional
+    export: true
+
+  # 布尔
+  - name: onSale
+    label: 是否上架
+    type: boolean
+    required: true
+    query: eq
+    list: true
+    form: true
+    import: optional
+    export: true
+
+  # 状态（固定选项）
+  - name: status
+    label: 状态
+    type: status
+    valueType: integer
+    required: true
+    query: eq
+    list: true
+    form: true
+    import: optional
+    export: true
+    options:
+      - { label: 启用, value: 1, theme: success }
+      - { label: 停用, value: 0, theme: default }
+
+  # 字典（值到标签展示；表单用静态 options）
+  - name: productType
+    label: 商品类型
+    type: dict
+    valueType: integer
+    dicCode: product_type
+    required: false
+    query: eq
+    list: true
+    form: true
+    import: optional
+    export: true
+    options:
+      - { label: 实物, value: 1 }
+      - { label: 虚拟, value: 2 }
+
+  # 外键（目标表必须加入 athena.dict.allowed-tables）
+  - name: categoryId
+    label: 分类
+    type: foreignKey
+    targetTable: product_category
+    valueColumn: id
+    textColumn: category_name
+    required: false
+    query: eq
+    list: true
+    form: true
+    import: optional
+    export: true
+    optionsEndpoint: /product/category/select
+
+  # 日期
+  - name: publishDate
+    label: 发布日期
+    type: date
+    required: false
+    query: between
+    list: true
+    form: true
+    import: optional
+    export: true
+
+  # 日期时间
+  - name: expireAt
+    label: 过期时间
+    type: datetime
+    required: false
+    query: none
+    list: false
+    form: true
+    import: never
+    export: true
+
+  # 敏感字段示例：不进入导入/导出
+  - name: secretKey
+    label: 密钥
+    type: string
+    length: 128
+    sensitive: true
+    list: false
+    form: true
+    import: never
+    export: false
