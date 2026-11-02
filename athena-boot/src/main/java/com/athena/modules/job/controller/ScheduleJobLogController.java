@@ -8,7 +8,6 @@ import com.athena.modules.job.entity.ScheduleJobLog;
 import com.athena.modules.job.service.ScheduleJobLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,15 +31,5 @@ public class ScheduleJobLogController {
 		PageUtils page = scheduleJobLogService.queryPage(scheduleJobLog, pageDto);
 		
 		return Result.ok(page);
-	}
-	
-	/**
-	 * 定时任务日志信息
-	 */
-	@GetMapping("/info/{logId}")
-	@SaCheckPermission("sys:schedule:log")
-	public Result<ScheduleJobLog> info(@PathVariable("logId") Long logId){
-		ScheduleJobLog log = scheduleJobLogService.getById(logId);
-		return Result.ok(log);
 	}
 }

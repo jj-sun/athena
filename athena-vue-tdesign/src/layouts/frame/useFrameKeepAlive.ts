@@ -50,5 +50,10 @@ export function useFrameKeepAlive() {
     return unref(getOpenTabList).includes(name);
   }
 
-  return { hasRenderFrame, getFramePages, showIframe, getAllFramePages };
+  return {
+    hasRenderFrame,
+    getFramePages,
+    showIframe,
+    getAllFramePages,
+  };
 }

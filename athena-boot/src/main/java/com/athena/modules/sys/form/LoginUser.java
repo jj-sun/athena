@@ -37,9 +37,9 @@ public class LoginUser implements Serializable {
     private Integer sex;
 
     /**
-     * 部门code
+     * 部门ID
      */
-    private String deptCode;
+    private String deptId;
 
     private Integer userType;
 

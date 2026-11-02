@@ -39,6 +39,7 @@ export default defineComponent({
 .mb-1 {
   margin-bottom: 0.25rem;
 }
+
 .w-full {
   width: 100%;
 }

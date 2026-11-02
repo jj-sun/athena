@@ -20,6 +20,4 @@ public interface SysRoleService extends IRepository<SysRole> {
 	boolean deleteEntity(String id);
 
 	void deleteBatch(List<String> ids);
-
-	List<String> queryRoleCodeById(List<String> ids);
 }

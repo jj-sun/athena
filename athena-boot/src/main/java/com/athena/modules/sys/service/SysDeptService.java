@@ -26,7 +26,7 @@ public interface SysDeptService extends IRepository<SysDept> {
 
     boolean deleteBatch(List<String> ids);
 
-    List<String> getSubDeptIds(String deptCode);
+    List<String> getSubDeptIds(String deptIds);
 
     /**
      * 校验上级部门：必须存在，且不能选择自己或自己的下级（防止形成环导致节点从树中消失）。

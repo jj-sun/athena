@@ -55,10 +55,6 @@ public final class PublicPaths {
             "/doc.html",
             // nextdoc4j 的前端资源（JS/CSS/字体/图片），由 nextdoc4j-ui 的 jar 提供
             "/nextdoc/**",
-            "/swagger-ui.html",
-            "/swagger**/**",
-            "/webjars/**",
-            "/v2/**",
             "/v3/**"
     );
 

@@ -65,8 +65,21 @@ service.interceptors.request.use(
       // 必须一并纳入签名，否则会返回「无效签名」。
       // 真实请求中 URL 自带参数排在 config.params 之前，服务端同名取第一个值，因此以 URL 为准。
       const urlParams = config.url ? parseUrlParams(config.url) : {};
-      const sign = await signParams({ ...queryParams, ...urlParams, timestamp, nonce }, secret);
-      config.params = { ...queryParams, timestamp, nonce, sign };
+      const sign = await signParams(
+        {
+          ...queryParams,
+          ...urlParams,
+          timestamp,
+          nonce,
+        },
+        secret,
+      );
+      config.params = {
+        ...queryParams,
+        timestamp,
+        nonce,
+        sign,
+      };
     }
 
     return config;

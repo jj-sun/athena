@@ -89,10 +89,10 @@ public class SysUserServiceImpl extends CrudRepository<SysUserMapper, SysUser> i
 			.like(StringUtils.isNotBlank(user.getRealname()), SysUser::getRealname, user.getRealname())
 			.like(StringUtils.isNotBlank(user.getEmail()), SysUser::getEmail, user.getEmail());
 
-		if (StringUtils.isNotBlank(user.getDeptCode())) {
-			List<String> deptIds = sysDeptService.getSubDeptIds(user.getDeptCode());
+		if (StringUtils.isNotBlank(user.getDeptId())) {
+			List<String> deptIds = sysDeptService.getSubDeptIds(user.getDeptId());
 			if (!deptIds.isEmpty()) {
-				wrapper.in(SysUser::getDeptCode, deptIds);
+				wrapper.in(SysUser::getDeptId, deptIds);
 			}
 		}
 		return wrapper;
@@ -121,6 +121,7 @@ public class SysUserServiceImpl extends CrudRepository<SysUserMapper, SysUser> i
 		if (existsByMobile(user.getMobile(), null)) {
 			throw new RRException("手机号已存在");
 		}
+		validateDeptExists(user);
 
 		// 不再使用固定默认口令（原为 123456）：创建用户必须显式设置初始密码，
 		// 并且无论是否显式设置，都执行复杂度校验。
@@ -166,6 +167,7 @@ public class SysUserServiceImpl extends CrudRepository<SysUserMapper, SysUser> i
 		if (existsByMobile(user.getMobile(), user.getId())) {
 			throw new RRException("手机号已存在");
 		}
+		validateDeptExists(user);
 
 		if (Constant.SUPER_ADMIN.equals(existing.getUsername())) {
 			// 超管账号的用户名与角色绑定不允许经用户管理接口改动：改名会让其失去超管身份，
@@ -188,6 +190,16 @@ public class SysUserServiceImpl extends CrudRepository<SysUserMapper, SysUser> i
 		// （先清空自己的角色，再重新绑定到更有权的角色）。
 		if (Objects.nonNull(user.getRoleIdList())) {
 			sysUserRoleService.saveOrUpdate(user.getId(), user.getRoleIdList());
+		}
+	}
+
+	/**
+	 * 校验用户所属部门存在。空值放行：Excel 导入允许不填部门。
+	 */
+	private void validateDeptExists(SysUser user) {
+		user.setDeptId(StringUtils.trimToNull(user.getDeptId()));
+		if (user.getDeptId() != null && sysDeptService.getById(user.getDeptId()) == null) {
+			throw new RRException("所属部门不存在");
 		}
 	}
 
@@ -292,7 +304,7 @@ public class SysUserServiceImpl extends CrudRepository<SysUserMapper, SysUser> i
 			return new ArrayList<>();
 		}
 
-		// 部门 id -> 部门名称（注意：sys_user.dept_code 存的是部门 id）
+		// 部门 id -> 部门名称（sys_user.dept_id 存的是 sys_dept.id）
 		Map<String, String> deptNameMap = sysDeptService.list().stream()
 			.filter(dept -> StringUtils.isNotBlank(dept.getId()))
 			.collect(Collectors.toMap(SysDept::getId,
@@ -320,7 +332,7 @@ public class SysUserServiceImpl extends CrudRepository<SysUserMapper, SysUser> i
 			row.setEmail(safeExcelText(item.getEmail()));
 			row.setMobile(safeExcelText(item.getMobile()));
 			row.setSex(sexText(item.getSex()));
-			row.setDeptName(safeExcelText(deptNameMap.get(item.getDeptCode())));
+			row.setDeptName(safeExcelText(deptNameMap.get(item.getDeptId())));
 			row.setRoleNames(safeExcelText(roleIdsByUser.getOrDefault(item.getId(), List.of()).stream()
 				.map(roleNameMap::get)
 				.filter(StringUtils::isNotBlank)
@@ -463,7 +475,7 @@ public class SysUserServiceImpl extends CrudRepository<SysUserMapper, SysUser> i
 					errors.add("第 " + rowNum + " 行：部门编码【" + deptCode + "】不存在");
 					continue;
 				}
-				user.setDeptCode(deptId);
+				user.setDeptId(deptId);
 			}
 
 			List<String> roleIds = new ArrayList<>();

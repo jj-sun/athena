@@ -11,7 +11,7 @@
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "lib": ["esnext", "dom"],
-    "types": ["vite/client"],
+    "types": ["vite/client", "node"],
     "noEmit": true,
     "baseUrl": "./",
     "paths": {

@@ -66,10 +66,4 @@ public class SysRoleServiceImpl extends CrudRepository<SysRoleMapper, SysRole> i
         //删除角色与用户关联
         sysUserRoleService.deleteBatch(ids);
     }
-
-
-	@Override
-	public List<String> queryRoleCodeById(List<String> ids) {
-		return baseMapper.findRoleCodeById(ids);
-	}
 }

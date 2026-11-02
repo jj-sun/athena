@@ -57,18 +57,6 @@ public class SysPermissionController extends AbstractController {
 	}
 	
 	/**
-	 * 选择菜单(添加、修改菜单)
-	 */
-	@GetMapping("/select")
-	@SaCheckPermission("sys:menu:select")
-	public Result<List<SysMenuTree>> select(){
-		//查询列表数据
-		List<SysMenuTree> menuList = sysPermissionService.treeSelect();
-		
-		return Result.ok(menuList);
-	}
-	
-	/**
 	 * 菜单信息
 	 */
 	@GetMapping("/info/{id}")

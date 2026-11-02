@@ -5,9 +5,6 @@ package com.athena.modules.sys.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.athena.modules.sys.entity.SysRole;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-
-import java.util.List;
 
 /**
  * 角色管理
@@ -16,6 +13,4 @@ import java.util.List;
  */
 @Mapper
 public interface SysRoleMapper extends BaseMapper<SysRole> {
-	
-	List<String> findRoleCodeById(@Param("ids") List<String> ids);
 }

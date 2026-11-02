@@ -126,7 +126,7 @@ const MODE_OPTIONS = [
 const initStyleConfig = () => {
   const styleConfig = STYLE_CONFIG;
   for (const key in styleConfig) {
-    if (Object.prototype.hasOwnProperty.call(styleConfig, key)) {
+    if (Object.hasOwn(styleConfig, key)) {
       (styleConfig[key as keyof typeof STYLE_CONFIG] as any) = settingStore[key as keyof typeof STYLE_CONFIG];
     }
   }
@@ -138,7 +138,9 @@ const dynamicColor = computed(() => {
   const isDynamic = DEFAULT_COLOR_OPTIONS.includes(formData.value.brandTheme);
   return isDynamic ? formData.value.brandTheme : '';
 });
-const formData = ref({ ...initStyleConfig() });
+const formData = ref({
+  ...initStyleConfig(),
+});
 const isColoPickerDisplay = ref(false);
 
 const showSettingPanel = computed({

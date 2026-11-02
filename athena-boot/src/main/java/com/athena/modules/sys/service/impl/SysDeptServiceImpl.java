@@ -86,9 +86,9 @@ public class SysDeptServiceImpl extends CrudRepository<SysDeptMapper, SysDept> i
                 throw new RRException("部门【" + dept.getDeptName() + "】仍有未选中的子部门，不能删除");
             }
         }
-        // 部门下有用户时拒绝删除，避免用户保留一个指向已删除部门的 deptCode
+        // 部门下有用户时拒绝删除，避免用户保留一个指向已删除部门的 dept_id
         Long userCount = sysUserMapper.selectCount(
-                new LambdaQueryWrapper<SysUser>().in(SysUser::getDeptCode, validIds));
+                new LambdaQueryWrapper<SysUser>().in(SysUser::getDeptId, validIds));
         if (userCount != null && userCount > 0) {
             throw new RRException("选中的部门下还有 " + userCount + " 个用户，请先调整用户所属部门");
         }
@@ -118,13 +118,13 @@ public class SysDeptServiceImpl extends CrudRepository<SysDeptMapper, SysDept> i
     }
 
     @Override
-    public List<String> getSubDeptIds(String deptCode) {
-        if (StringUtils.isBlank(deptCode)) {
+    public List<String> getSubDeptIds(String deptIds) {
+        if (StringUtils.isBlank(deptIds)) {
             return new ArrayList<>();
         }
         List<SysDept> allDepts = this.list();
         Set<String> result = new HashSet<>();
-        String[] ids = deptCode.split(",");
+        String[] ids = deptIds.split(",");
         for (String id : ids) {
             if (StringUtils.isNotBlank(id)) {
                 collectDeptAndChildren(id, allDepts, result);

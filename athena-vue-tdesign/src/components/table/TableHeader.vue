@@ -83,15 +83,19 @@ export default defineComponent({
 .mb-2 {
   margin-bottom: 0.5rem;
 }
+
 .float-left {
   float: left;
 }
+
 .float-right {
   float: right;
 }
+
 .mt-2_5 {
   margin-top: 0.625rem;
 }
+
 .w-full {
   width: 100%;
 }

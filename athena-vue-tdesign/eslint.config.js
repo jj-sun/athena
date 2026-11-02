@@ -56,6 +56,8 @@ export default antfu(
         /* Disallow person rules */
         'antfu/top-level-function': 'off',
         'antfu/if-newline': 'off',
+        // antfu 10 新增的换行规则与 prettier 互相还原（无法自动修复），格式化统一交给 prettier
+        'antfu/reasonable-newline': 'off',
         'n/prefer-global/process': 'off',
 
         /* If you need control the imports sequence, must be off
@@ -99,7 +101,8 @@ export default antfu(
 
       rules: {
         'vue/component-name-in-template-casing': ['error', 'kebab-case'],
-        'vue/custom-event-name-casing': ['error', 'kebab-case'],
+        // v-model 的 `update:xxx` 事件名由 prop 名决定（如 update:modelValue），不能改成 kebab-case
+        'vue/custom-event-name-casing': ['error', 'kebab-case', { ignores: ['/^update:/'] }],
         'vue/block-order': [
           'error',
           {

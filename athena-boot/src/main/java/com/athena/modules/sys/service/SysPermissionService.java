@@ -26,11 +26,6 @@ public interface SysPermissionService extends IRepository<SysPermission> {
 	List<SysPermission> queryListParentId(String parentId);
 	
 	/**
-	 * 获取菜单
-	 */
-	List<SysMenuTree> treeSelect();
-	
-	/**
 	 * 获取用户菜单列表
 	 */
 	List<SysMenuTree> getUserPermissionTree(String username);

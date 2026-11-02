@@ -8,8 +8,8 @@ export interface SysUser {
   email: string;
   mobile: string;
   sex: number;
-  deptCode: string;
-  deptCode_dictText?: string;
+  deptId: string;
+  deptId_dictText?: string;
   userType?: number;
   delFlag?: number;
   ctime?: string;

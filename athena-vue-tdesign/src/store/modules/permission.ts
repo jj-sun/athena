@@ -14,7 +14,8 @@ export function getMenuList() {
 
 interface RouteLike {
   path?: string;
-  meta?: { hidden?: boolean; type?: number };
+  // vue-router 5 的 RouteMeta 带索引签名与 data-loader 字段，这里放宽以避免弱类型检测报错
+  meta?: Record<string, unknown>;
   children?: RouteLike[];
 }
 

@@ -708,7 +708,9 @@ function updateChartOptions() {
       type: 'category',
       boundaryGap: false,
       data: times,
-      axisLine: { lineStyle: { color: borderColor } },
+      axisLine: {
+        lineStyle: { color: borderColor },
+      },
       axisLabel: { color: textColor },
     },
     yAxis: {
@@ -719,7 +721,9 @@ function updateChartOptions() {
         color: textColor,
         formatter: '{value}%',
       },
-      splitLine: { lineStyle: { color: borderColor, type: 'dashed' } },
+      splitLine: {
+        lineStyle: { color: borderColor, type: 'dashed' },
+      },
     },
   };
 
@@ -794,7 +798,9 @@ function updateRedisChartOptions() {
       type: 'category',
       boundaryGap: false,
       data: times,
-      axisLine: { lineStyle: { color: borderColor } },
+      axisLine: {
+        lineStyle: { color: borderColor },
+      },
       axisLabel: { color: textColor },
     },
   };
@@ -814,7 +820,9 @@ function updateRedisChartOptions() {
           color: textColor,
           formatter: (value: number) => formatBytes(value),
         },
-        splitLine: { lineStyle: { color: borderColor, type: 'dashed' } },
+        splitLine: {
+          lineStyle: { color: borderColor, type: 'dashed' },
+        },
       },
       series: [
         {
@@ -842,7 +850,9 @@ function updateRedisChartOptions() {
         type: 'value',
         min: 0,
         axisLabel: { color: textColor },
-        splitLine: { lineStyle: { color: borderColor, type: 'dashed' } },
+        splitLine: {
+          lineStyle: { color: borderColor, type: 'dashed' },
+        },
       },
       series: [
         {

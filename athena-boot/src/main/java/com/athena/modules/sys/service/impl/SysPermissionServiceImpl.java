@@ -80,12 +80,6 @@ public class SysPermissionServiceImpl extends CrudRepository<SysPermissionMapper
 	}
 
 	@Override
-	public List<SysMenuTree> treeSelect() {
-		List<SysPermission> sysPermissionEntities = this.list();
-		return this.getTree(sysPermissionEntities);
-	}
-
-	@Override
 	public List<SysMenuTree> getUserPermissionTree(String username) {
 		List<SysPermission> sysPermissionEntities;
 

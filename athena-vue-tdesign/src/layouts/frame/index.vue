@@ -19,7 +19,12 @@ export default defineComponent({
 
     const showFrame = computed(() => unref(getFramePages).length > 0);
 
-    return { getFramePages, hasRenderFrame, showIframe, showFrame };
+    return {
+      getFramePages,
+      hasRenderFrame,
+      showIframe,
+      showFrame,
+    };
   },
 });
 </script>

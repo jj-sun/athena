@@ -158,8 +158,8 @@
               <t-radio :value="2">女</t-radio>
             </t-radio-group>
           </t-form-item>
-          <t-form-item label="所属部门" name="deptCode">
-            <dept-select v-model:value="formData.deptCode" />
+          <t-form-item label="所属部门" name="deptId">
+            <dept-select v-model:value="formData.deptId" />
           </t-form-item>
           <t-form-item label="角色" name="roleIdList">
             <t-select v-model="formData.roleIdList" placeholder="请选择角色" multiple :options="roleOptions" />
@@ -295,7 +295,7 @@ const formData = reactive<SysUser>({
   email: '',
   mobile: '',
   sex: 1,
-  deptCode: '',
+  deptId: '',
   roleIdList: [],
 });
 
@@ -344,7 +344,7 @@ const rules: FormProps['rules'] = {
       trigger: 'blur',
     },
   ],
-  deptCode: [
+  deptId: [
     {
       required: true,
       message: '部门必选',
@@ -392,7 +392,7 @@ const tableColumns = reactive(
       },
       {
         title: '部门',
-        colKey: 'deptCode_dictText',
+        colKey: 'deptId_dictText',
       },
       {
         title: '状态',
@@ -439,7 +439,7 @@ function loadData() {
     ...searchForm,
   };
   if (selectedDeptKeys.value.length > 0) {
-    params.deptCode = selectedDeptKeys.value.join(',');
+    params.deptId = selectedDeptKeys.value.join(',');
   }
   getUserList(params)
     .then((res) => {
@@ -479,7 +479,7 @@ async function onExport() {
   try {
     const params: any = { ...searchForm };
     if (selectedDeptKeys.value.length > 0) {
-      params.deptCode = selectedDeptKeys.value.join(',');
+      params.deptId = selectedDeptKeys.value.join(',');
     }
     const blob = await exportUserList(params);
     downloadBlob(blob, `用户列表_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx`);
@@ -553,7 +553,7 @@ function onAdd() {
     email: '',
     mobile: '',
     sex: 1,
-    deptCode: '',
+    deptId: '',
     roleIdList: [],
   });
   modalDialogRef.value.toggle();
@@ -572,7 +572,7 @@ function onEdit(record: SysUser) {
         email: user.email,
         mobile: user.mobile,
         sex: user.sex || 1,
-        deptCode: user.deptCode,
+        deptId: user.deptId,
         roleIdList: user.roleIdList || [],
       });
       modalDialogRef.value?.toggle();

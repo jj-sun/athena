@@ -98,7 +98,6 @@ CREATE TABLE `qrtz_cron_triggers` (
 
 LOCK TABLES `qrtz_cron_triggers` WRITE;
 /*!40000 ALTER TABLE `qrtz_cron_triggers` DISABLE KEYS */;
-INSERT INTO `qrtz_cron_triggers` VALUES ('MyScheduler','TASK_1491736261201805313','DEFAULT','0 0/30 * * * ?','Asia/Shanghai');
 /*!40000 ALTER TABLE `qrtz_cron_triggers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -172,7 +171,6 @@ CREATE TABLE `qrtz_job_details` (
 
 LOCK TABLES `qrtz_job_details` WRITE;
 /*!40000 ALTER TABLE `qrtz_job_details` DISABLE KEYS */;
-INSERT INTO `qrtz_job_details` VALUES ('MyScheduler','TASK_1491736261201805313','DEFAULT',NULL,'com.athena.modules.job.utils.ScheduleJob','0','0','0','0',_binary '¨\Ì\0sr\0org.quartz.JobDataMapü∞ÉËø©∞\À\0\0xr\0&org.quartz.utils.StringKeyDirtyFlagMapÇ\Ë\√˚\≈](\0Z\0allowsTransientDataxr\0org.quartz.utils.DirtyFlagMap\Ê.≠(v\n\Œ\0Z\0dirtyL\0mapt\0Ljava/util/Map;xpsr\0java.util.HashMap\⁄¡\√`\—\0F\0\nloadFactorI\0	thresholdxp?@\0\0\0\0\0w\0\0\0\0\0\0t\0\rJOB_PARAM_KEYsr\0)com.athena.modules.job.entity.ScheduleJob\0\0\0\0\0\0\0\0L\0beanNamet\0Ljava/lang/String;L\0cronExpressionq\0~\0	L\0	parameterq\0~\0	L\0remarkq\0~\0	L\0statust\0Ljava/lang/Integer;xr\0 com.athena.common.base.po.BasePoéî\…3qû\0L\0creatorq\0~\0	L\0ctimet\0Ljava/util/Date;L\0delFlagq\0~\0\nL\0editorq\0~\0	L\0idq\0~\0	L\0mtimeq\0~\0xpt\0adminsr\0java.util.DatehjÅKYt\0\0xpw\0\0~\„e\Î/xsr\0java.lang.Integer‚†§\˜Åá8\0I\0valuexr\0java.lang.NumberÜ¨ïî\‡ã\0\0xp\0\0\0\0q\0~\0t\01491736261201805313sq\0~\0w\0\0~\„e\Î1xt\0testTaskt\00 0/30 * * * ?t\0athenat\0%ÊúâÂèÇÊµãËØïÔºåÂ§ö‰∏™ÂèÇÊï∞‰ΩøÁî®jsonq\0~\0x\0');
 /*!40000 ALTER TABLE `qrtz_job_details` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -359,7 +357,6 @@ CREATE TABLE `qrtz_triggers` (
 
 LOCK TABLES `qrtz_triggers` WRITE;
 /*!40000 ALTER TABLE `qrtz_triggers` DISABLE KEYS */;
-INSERT INTO `qrtz_triggers` VALUES ('MyScheduler','TASK_1491736261201805313','DEFAULT','TASK_1491736261201805313','DEFAULT',NULL,1644494400000,-1,5,'PAUSED','CRON',1644492614000,0,NULL,2,_binary '¨\Ì\0sr\0org.quartz.JobDataMapü∞ÉËø©∞\À\0\0xr\0&org.quartz.utils.StringKeyDirtyFlagMapÇ\Ë\√˚\≈](\0Z\0allowsTransientDataxr\0org.quartz.utils.DirtyFlagMap\Ê.≠(v\n\Œ\0Z\0dirtyL\0mapt\0Ljava/util/Map;xpsr\0java.util.HashMap\⁄¡\√`\—\0F\0\nloadFactorI\0	thresholdxp?@\0\0\0\0\0w\0\0\0\0\0\0t\0\rJOB_PARAM_KEYsr\0)com.athena.modules.job.entity.ScheduleJob\0\0\0\0\0\0\0\0L\0beanNamet\0Ljava/lang/String;L\0cronExpressionq\0~\0	L\0	parameterq\0~\0	L\0remarkq\0~\0	L\0statust\0Ljava/lang/Integer;xr\0 com.athena.common.base.po.BasePoéî\…3qû\0L\0creatorq\0~\0	L\0ctimet\0Ljava/util/Date;L\0delFlagq\0~\0\nL\0editorq\0~\0	L\0idq\0~\0	L\0mtimeq\0~\0xpt\0adminsr\0java.util.DatehjÅKYt\0\0xpw\0\0~\„e\Èpxsr\0java.lang.Integer‚†§\˜Åá8\0I\0valuexr\0java.lang.NumberÜ¨ïî\‡ã\0\0xp\0\0\0\0t\0admint\01491736261201805313sq\0~\0w\0\0~\„e\Èpxt\0testTaskt\00 0/30 * * * ?t\0athenat\0%ÊúâÂèÇÊµãËØïÔºåÂ§ö‰∏™ÂèÇÊï∞‰ΩøÁî®jsonsq\0~\0\0\0\0x\0');
 /*!40000 ALTER TABLE `qrtz_triggers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -392,7 +389,6 @@ CREATE TABLE `schedule_job` (
 
 LOCK TABLES `schedule_job` WRITE;
 /*!40000 ALTER TABLE `schedule_job` DISABLE KEYS */;
-INSERT INTO `schedule_job` VALUES ('1491736261201805313','testTask','athena','0 0/30 * * * ?',1,'ÊúâÂèÇÊµãËØïÔºåÂ§ö‰∏™ÂèÇÊï∞‰ΩøÁî®json','2022-02-10 19:30:14','2022-02-10 19:30:14','admin','admin',0);
 /*!40000 ALTER TABLE `schedule_job` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -423,60 +419,7 @@ CREATE TABLE `schedule_job_log` (
 
 LOCK TABLES `schedule_job_log` WRITE;
 /*!40000 ALTER TABLE `schedule_job_log` DISABLE KEYS */;
-INSERT INTO `schedule_job_log` VALUES ('1491741983658500097','1491736261201805313','testTask','athena',0,NULL,2,'2022-02-10 19:52:59'),('1491743750479736834','1491736261201805313','testTask','athena',0,NULL,2,'2022-02-10 20:00:00'),('1491743821585821697','1491736261201805313','testTask','athena',0,NULL,1,'2022-02-10 20:00:17'),('1491751300222717953','1491736261201805313','testTask','athena',0,NULL,2,'2022-02-10 20:30:00'),('1491758850020335618','1491736261201805313','testTask','athena',0,NULL,1,'2022-02-10 21:00:00'),('1491955143405477889','1491736261201805313','testTask','athena',0,NULL,1,'2022-02-11 10:00:00'),('1491962693198815234','1491736261201805313','testTask','athena',0,NULL,1,'2022-02-11 10:30:00'),('1491970242832769026','1491736261201805313','testTask','athena',0,NULL,1,'2022-02-11 11:00:00'),('1491977792638689281','1491736261201805313','testTask','athena',0,NULL,0,'2022-02-11 11:30:00'),('1491985342369112065','1491736261201805313','testTask','athena',0,NULL,0,'2022-02-11 12:00:00'),('1491992892149866497','1491736261201805313','testTask','athena',0,NULL,0,'2022-02-11 12:30:00'),('1492000441901260801','1491736261201805313','testTask','athena',0,NULL,0,'2022-02-11 13:00:00'),('1492007991627489282','1491736261201805313','testTask','athena',0,NULL,0,'2022-02-11 13:30:00'),('1492015541345329154','1491736261201805313','testTask','athena',0,NULL,0,'2022-02-11 14:00:00'),('1492023091180609537','1491736261201805313','testTask','athena',0,NULL,1,'2022-02-11 14:30:00'),('1493019657781653505','1491736261201805313','testTask','athena',0,NULL,2,'2022-02-14 08:30:00'),('1493027207453356033','1491736261201805313','testTask','athena',0,NULL,1,'2022-02-14 09:00:00'),('1493034757242499073','1491736261201805313','testTask','athena',0,NULL,1,'2022-02-14 09:30:00'),('1493049856904663042','1491736261201805313','testTask','athena',0,NULL,2,'2022-02-14 10:30:00'),('1493057406496673793','1491736261201805313','testTask','athena',0,NULL,0,'2022-02-14 11:00:00'),('1493064956176764930','1491736261201805313','testTask','athena',0,NULL,1,'2022-02-14 11:30:00'),('1493072506024628226','1491736261201805313','testTask','athena',0,NULL,0,'2022-02-14 12:00:00'),('1493080055675359233','1491736261201805313','testTask','athena',0,NULL,0,'2022-02-14 12:30:00'),('1493087605623885825','1491736261201805313','testTask','athena',0,NULL,1,'2022-02-14 13:00:00'),('1493095155207507969','1491736261201805313','testTask','athena',0,NULL,1,'2022-02-14 13:30:00'),('1493102705114091521','1491736261201805313','testTask','athena',0,NULL,1,'2022-02-14 14:00:00'),('1493110254727073794','1491736261201805313','testTask','athena',0,NULL,1,'2022-02-14 14:30:00'),('1493117804533108737','1491736261201805313','testTask','athena',0,NULL,2,'2022-02-14 15:00:00'),('1493125354217394178','1491736261201805313','testTask','athena',0,NULL,1,'2022-02-14 15:30:00'),('1493132903964594177','1491736261201805313','testTask','athena',0,NULL,1,'2022-02-14 16:00:00'),('1493140453770514433','1491736261201805313','testTask','athena',0,NULL,1,'2022-02-14 16:30:00'),('2087517171214843905','1491736261201805313','testTask','athena',0,NULL,1,'2026-08-12 20:30:52'),('2087517171277758465','1491736261201805313','testTask','athena',0,NULL,0,'2026-08-12 20:30:52'),('2087522418041683969','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',2,'2026-08-12 20:51:43'),('2087524500958216193','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',2,'2026-08-12 21:00:00'),('2087532050717999105','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',3,'2026-08-12 21:30:00'),('2087539600469393409','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',2,'2026-08-12 22:00:00'),('2087547150212399106','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',2,'2026-08-12 22:30:00'),('2087554699955404801','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',2,'2026-08-12 23:00:00'),('2087562249719382018','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',3,'2026-08-12 23:30:00'),('2087569799730823169','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',66,'2026-08-13 00:00:00'),('2087577349213782018','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',4,'2026-08-13 00:30:00'),('2087584898944204801','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',3,'2026-08-13 01:00:00'),('2087592448699793410','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',2,'2026-08-13 01:30:00'),('2087599998430216194','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',1,'2026-08-13 02:00:00'),('2087607548189999106','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',1,'2026-08-13 02:30:00'),('2087615097933004802','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',2,'2026-08-13 03:00:00'),('2087622647676010497','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',2,'2026-08-13 03:30:00'),('2087630197435793409','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',2,'2026-08-13 04:00:00'),('2087637747174604802','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',2,'2026-08-13 04:30:00'),('2087645296905027585','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',1,'2026-08-13 05:00:00'),('2087652846656421890','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',2,'2026-08-13 05:30:00'),('2087660396416204802','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',2,'2026-08-13 06:00:00'),('2087667946167599105','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',3,'2026-08-13 06:30:00'),('2087675495918993410','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',3,'2026-08-13 07:00:00'),('2087683045653610498','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',2,'2026-08-13 07:30:00'),('2087690595400810497','2087522224373891073','1111','1',1,'org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named \'1111\' available',2,'2026-08-13 08:00:00');
 /*!40000 ALTER TABLE `schedule_job_log` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `sys_captcha`
---
-
-DROP TABLE IF EXISTS `sys_captcha`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `sys_captcha` (
-  `uuid` char(36) NOT NULL COMMENT 'uuid',
-  `code` varchar(6) NOT NULL COMMENT 'È™åËØÅÁ†Å',
-  `expire_time` datetime DEFAULT NULL COMMENT 'ËøáÊúüÊó∂Èó¥',
-  PRIMARY KEY (`uuid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Á≥ªÁªüÈ™åËØÅÁ†Å';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `sys_captcha`
---
-
-LOCK TABLES `sys_captcha` WRITE;
-/*!40000 ALTER TABLE `sys_captcha` DISABLE KEYS */;
-/*!40000 ALTER TABLE `sys_captcha` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `sys_config`
---
-
-DROP TABLE IF EXISTS `sys_config`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `sys_config` (
-  `id` varchar(32) NOT NULL,
-  `param_key` varchar(50) DEFAULT NULL COMMENT 'key',
-  `param_value` varchar(2000) DEFAULT NULL COMMENT 'value',
-  `status` tinyint DEFAULT '1' COMMENT 'Áä∂ÊÄÅ   0ÔºöÊòæÁ§∫   1ÔºöÈöêËóè',
-  `remark` varchar(500) DEFAULT NULL COMMENT 'Â§áÊ≥®',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `param_key` (`param_key`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Á≥ªÁªüÈÖçÁΩÆ‰ø°ÊÅØË°®';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `sys_config`
---
-
-LOCK TABLES `sys_config` WRITE;
-/*!40000 ALTER TABLE `sys_config` DISABLE KEYS */;
-INSERT INTO `sys_config` VALUES ('1','CLOUD_STORAGE_CONFIG_KEY','{\"aliyunAccessKeyId\":\"\",\"aliyunAccessKeySecret\":\"\",\"aliyunBucketName\":\"\",\"aliyunDomain\":\"\",\"aliyunEndPoint\":\"\",\"aliyunPrefix\":\"\",\"qcloudBucketName\":\"\",\"qcloudDomain\":\"\",\"qcloudPrefix\":\"\",\"qcloudSecretId\":\"\",\"qcloudSecretKey\":\"\",\"qiniuAccessKey\":\"NrgMfABZxWLo5B-YYSjoE8-AZ1EISdi1Z3ubLOeZ\",\"qiniuBucketName\":\"ios-app\",\"qiniuDomain\":\"http://7xqbwh.dl1.z0.glb.clouddn.com\",\"qiniuPrefix\":\"upload\",\"qiniuSecretKey\":\"uIwJHevMRWU0VLxFvgy0tAcOdGqasdtVlJkdy6vV\",\"type\":1}',0,'‰∫ëÂ≠òÂÇ®ÈÖçÁΩÆ‰ø°ÊÅØ');
-/*!40000 ALTER TABLE `sys_config` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -729,11 +672,10 @@ CREATE TABLE `sys_user` (
   `username` varchar(50) NOT NULL COMMENT 'Áî®Êà∑Âêç',
   `realname` varchar(255) DEFAULT NULL COMMENT 'Áî®Êà∑ÂßìÂêç',
   `password` varchar(100) DEFAULT NULL COMMENT 'ÂØÜÁ†Å',
-  `salt` varchar(20) DEFAULT NULL COMMENT 'Áõê',
   `email` varchar(100) DEFAULT NULL COMMENT 'ÈÇÆÁÆ±',
   `mobile` varchar(100) DEFAULT NULL COMMENT 'ÊâãÊú∫Âè∑',
   `sex` int DEFAULT '0' COMMENT 'ÊÄßÂà´(0‰øùÂØÜ1Áî∑ÊÄß2Â•≥ÊÄß)',
-  `dept_code` varchar(32) DEFAULT NULL COMMENT 'ÈÉ®Èó®code',
+  `dept_id` varchar(32) DEFAULT NULL COMMENT 'ÈÉ®Èó®ID',
   `user_type` int DEFAULT '1' COMMENT '0Â§ñÈÉ®‰∫∫Âëò1ÂÜÖÈÉ®‰∫∫Âëò',
   `del_flag` tinyint DEFAULT NULL COMMENT 'Áä∂ÊÄÅ  0ÔºöÊ≠£Â∏∏   1ÔºöÁ¶ÅÁî®',
   `creator` varchar(32) DEFAULT NULL COMMENT 'ÂàõÂª∫ËÄÖ',
@@ -751,7 +693,7 @@ CREATE TABLE `sys_user` (
 
 LOCK TABLES `sys_user` WRITE;
 /*!40000 ALTER TABLE `sys_user` DISABLE KEYS */;
-INSERT INTO `sys_user` VALUES ('1','admin','ÁÆ°ÁêÜÂëò','$2a$10$vUPRl5a/qVTgpNn1JA/2Vu.06LaOsM/y2laTRyvNVMiDqtLyYSdCC','YzcmCZNvbXocrsz9dm8e','root@qq.com','13612345678',0,'1485429843877969921',1,0,'1','2016-11-11 11:11:11',NULL,'2024-03-07 15:38:08'),('1491744161173450754','test1','ÊµãËØï','$2a$10$L5l9T6uzaZ5L5mlxziBJmOOCPx.In0f4McS/qFYt.wmTVu86KIprG',NULL,'hahaha@qq.com','1333333333',1,'1485429924664459265',1,0,'admin','2022-02-10 20:01:38','admin','2026-10-28 15:23:50');
+INSERT INTO `sys_user` VALUES ('1','admin','ÁÆ°ÁêÜÂëò','$2a$10$vUPRl5a/qVTgpNn1JA/2Vu.06LaOsM/y2laTRyvNVMiDqtLyYSdCC','root@qq.com','13612345678',0,'1485429843877969921',1,0,'1','2016-11-11 11:11:11',NULL,'2024-03-07 15:38:08'),('1491744161173450754','test1','ÊµãËØï','$2a$10$L5l9T6uzaZ5L5mlxziBJmOOCPx.In0f4McS/qFYt.wmTVu86KIprG','hahaha@qq.com','1333333333',1,'1485429924664459265',1,0,'admin','2022-02-10 20:01:38','admin','2026-10-28 15:23:50');
 /*!40000 ALTER TABLE `sys_user` ENABLE KEYS */;
 UNLOCK TABLES;
 

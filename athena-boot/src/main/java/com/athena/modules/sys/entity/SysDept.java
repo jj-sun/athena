@@ -2,6 +2,7 @@ package com.athena.modules.sys.entity;
 
 import com.athena.common.base.po.BasePo;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -16,6 +17,7 @@ import java.util.List;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
+@TableName("sys_dept")
 public class SysDept extends BasePo implements Serializable {
     @Serial
     private static final long serialVersionUID = -1456049284379334422L;

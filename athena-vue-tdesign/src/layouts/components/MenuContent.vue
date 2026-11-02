@@ -36,7 +36,7 @@ type ListItemType = MenuRoute & { icon?: string };
 const { navData } = defineProps({
   navData: {
     type: Array as PropType<MenuRoute[]>,
-    default: () => [],
+    default: (): MenuRoute[] => [],
   },
 });
 

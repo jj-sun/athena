@@ -12,8 +12,7 @@ import org.springframework.context.annotation.Configuration;
  * 接口文档（springdoc + nextdoc4j）基础配置。
  *
  * <p>springdoc 只消费调用方提供的 {@link OpenAPI}，自己不会创建该 Bean；而 nextdoc4j 的
- * {@code nextdoc4jBasicAuthFilter} 把它声明为必需参数，缺失时应用启动直接失败。Knife4j
- * 自带默认文档对象，所以此前项目里不需要这个 Bean，换成 nextdoc4j 后必须显式提供。
+ * {@code nextdoc4jBasicAuthFilter} 把它声明为必需参数，缺失时应用启动直接失败，因此必须显式提供。
  *
  * <p>同时声明 {@code X-Access-Token} 请求头，让文档页面的调试请求能带上 Sa-Token 令牌。
  *

@@ -6,7 +6,7 @@ RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && echo 'Asia/Shanghai' >/etc/timezone \
     && mkdir -p /athena/prod_athena
 
-COPY athena-boot.jar /athena/prod_athena
+COPY target/athena-boot.jar /athena/prod_athena/
 
 # 默认以 prod 启动。
 # 不要在这里硬编码 dev：那会让 application-prod.yml 完全不生效，接口文档、

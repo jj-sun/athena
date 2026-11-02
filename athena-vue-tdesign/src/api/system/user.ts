@@ -21,13 +21,13 @@ export function getUserList(params: {
   username?: string;
   realname?: string;
   email?: string;
-  deptCode?: string;
+  deptId?: string;
 }) {
   return GET(userApi.list, params);
 }
 
 export function getUserInfo(id: string) {
-  return GET(`${userApi.info}/${id}`);
+  return GET<SysUser>(`${userApi.info}/${id}`);
 }
 
 export function saveUser(data: SysUser) {
@@ -47,7 +47,10 @@ export function deleteUserBatch(ids: Array<string>) {
 }
 
 export function resetUserPassword(id: string, password: string) {
-  return POST(userApi.resetPassword, { id, password: rsaEncrypt(password) });
+  return POST(userApi.resetPassword, {
+    id,
+    password: rsaEncrypt(password),
+  });
 }
 
 export function changePassword(oldPassword: string, newPassword: string) {
@@ -58,7 +61,7 @@ export function changePassword(oldPassword: string, newPassword: string) {
 }
 
 /** 按当前查询条件导出全部匹配用户（不含密码） */
-export function exportUserList(params: { username?: string; realname?: string; email?: string; deptCode?: string }) {
+export function exportUserList(params: { username?: string; realname?: string; email?: string; deptId?: string }) {
   return GET<Blob>(userApi.exportList, params, { responseType: 'blob' });
 }
 

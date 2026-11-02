@@ -179,11 +179,15 @@ onMounted(() => {
  * 发送验证码
  */
 const sendCode = () => {
-  form.value.validate({ fields: ['phone'] }).then((e) => {
-    if (e === true) {
-      handleCounter();
-    }
-  });
+  form.value
+    .validate({
+      fields: ['phone'],
+    })
+    .then((e) => {
+      if (e === true) {
+        handleCounter();
+      }
+    });
 };
 
 const loading = ref(false);

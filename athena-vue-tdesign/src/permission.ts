@@ -71,7 +71,10 @@ router.beforeEach(async (to, from, next) => {
 
       // 根路径按角色落到第一个可访问页面，避免写死 /dashboard/analysis 对无权限角色不可用
       if (to.path === '/') {
-        next({ path: permissionStore.getDefaultPath(), replace: true });
+        next({
+          path: permissionStore.getDefaultPath(),
+          replace: true,
+        });
         NProgress.done();
         return;
       }
@@ -82,7 +85,10 @@ router.beforeEach(async (to, from, next) => {
         // 动态路由只注册当前角色可访问的菜单，"无权限" 和 "路径不存在" 此时无法区分；
         // 统一回退默认首页（回退到 / 会再次重定向，容易死循环），但打印日志便于排查
         console.warn('[router] 未匹配到路由，回退默认首页:', to.fullPath);
-        next({ path: permissionStore.getDefaultPath(), replace: true });
+        next({
+          path: permissionStore.getDefaultPath(),
+          replace: true,
+        });
       }
       NProgress.done();
     } catch {

@@ -27,7 +27,7 @@ const headerMenu = computed(() => {
     routes = settingStore.splitMenu
       ? menuRouters.value.map((menu) => ({
           ...menu,
-          children: [],
+          children: [] as never[],
         }))
       : [];
   }

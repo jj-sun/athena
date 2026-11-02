@@ -1,0 +1,6 @@
+target/*
+!target/athena-boot.jar
+.idea
+.vscode
+*.iml
+maven-updates.txt

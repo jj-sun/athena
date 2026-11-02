@@ -69,10 +69,10 @@ public class SysUser extends BasePo implements Serializable {
 	private Integer sex;
 
 	/**
-	 * 部门code
+	 * 部门ID
 	 */
 	@Dict(dicCode = "id", dicText = "dept_name", dictTable = "sys_dept")
-	private String deptCode;
+	private String deptId;
 
 	private Integer userType;
 

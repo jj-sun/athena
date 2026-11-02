@@ -13,7 +13,7 @@
 ### 参考实现（user-list.vue L145-151）
 ```vue
 <t-tree-select
-  v-model:value="formData.deptCode"
+  v-model:value="formData.deptId"
   placeholder="请选择部门"
   :data="departmentTree"
   :keys="{ value: 'id', label: 'deptName' }"
@@ -81,7 +81,7 @@
 **变更点**：
 1. L188：移除 `import { getDeptList }`（组件内部已处理）
 2. 新增 `import DeptSelect from '@/components/dept/index.vue'`
-3. L144-152：替换原 `t-tree-select` 为 `<DeptSelect v-model:value="formData.deptCode" />`
+3. L144-152：替换原 `t-tree-select` 为 `<DeptSelect v-model:value="formData.deptId" />`
 4. L229-L231：移除 `departmentTree`、`deptOptions` 变量（若不再被页面其他地方使用则删除）
 5. L342-L349：移除 `loadDeptTree()` 函数（同上）
 6. L532：移除 `loadDeptTree()` 调用（同上）
@@ -107,7 +107,7 @@
 - 运行 `npm run lint` 检查 TypeScript / ESLint 正确性
 - 手动验证（可选）：
   - 新增用户 → 部门选择器正常弹出部门树 → 可选
-  - 编辑用户 → 原 deptCode 正确回显部门名 → 可改可清空
+  - 编辑用户 → 原 deptId 正确回显部门名 → 可改可清空
 
 ---
 

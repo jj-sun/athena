@@ -45,7 +45,7 @@ public class SysUserImportExcel implements Serializable {
 	private String sex;
 
 	/**
-	 * 部门业务编码，对应 sys_dept.dept_code（不是 sys_user.dept_code 中保存的部门 id）。
+	 * 部门业务编码，对应 sys_dept.dept_code（不是 sys_user.dept_id 中保存的部门 id）。
 	 */
 	@ColumnWidth(18)
 	@ExcelProperty("部门编码")

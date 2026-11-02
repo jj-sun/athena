@@ -67,13 +67,13 @@ export const useUserStore = defineStore('user', {
     },
   },
   persist: {
-    afterRestore: () => {
+    afterHydrate: () => {
       const permissionStore = usePermissionStore();
       permissionStore.initRoutes().then(() => {
         console.log('初始化路由');
       });
     },
     key: 'user',
-    paths: ['token'],
+    pick: ['token'],
   },
 });
